@@ -4,8 +4,6 @@
 # 免责声明: 本脚本仅供学习和参考使用，作者不对使用本脚本造成的任何损失负责。
 
 echo "欢迎使用验证器安装脚本！"
-echo "作者: mang"
-echo "-----------------------------"
 
 # 检查是否以 root 权限运行
 if [ "$EUID" -ne 0 ]; then
@@ -20,82 +18,76 @@ mkswap /swapfile.img
 swapon /swapfile.img
 echo '/swapfile.img swap swap defaults 0 0' >> /etc/fstab
 
-# 安装必要的软件
+# 安装 Node.js 和 npm
 apt update
 apt install -y nodejs npm
-npm install -g pm2
 
-# 验证安装
-node --version
-npm --version
-pm2 --version
+# 安装 PM2
+npm install -g pm2
 
 # 下载验证器
 rm -rf /home/ubuntu/cysic-verifier
-mkdir /home/ubuntu/cysic-verifier
+mkdir -p /home/ubuntu/cysic-verifier
 cd /home/ubuntu/cysic-verifier
 
 curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > verifier
 curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > libzkp.so
-
 chmod +x verifier
 
 # 提示用户输入奖励地址
-read -p "请输入您的奖励地址: " reward_address
+read -p "请输入您的奖励地址 (EVM 地址): " reward_address
 
 # 设置验证器配置
-cat << EOF > config.yaml
+cat << EOF > /home/ubuntu/cysic-verifier/config.yaml
+# Not Change
 chain:
+  # Not Change
   endpoint: "testnet-node-1.prover.xyz:9090"
+  # Not Change
   chain_id: "cysicmint_9000-1"
+  # Not Change
   gas_coin: "cysic"
+  # Not Change
   gas_price: 10
+  # Modify Here： ! Your Address (EVM) submitted to claim rewards
 claim_reward_address: "${reward_address}"
 
 server:
+  # don't modify this
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# 创建启动脚本
-cat << EOF > start.sh
+# 创建健康检查脚本
+cat << EOF > /home/ubuntu/cysic-verifier/health_check.sh
 #!/bin/bash
-export LD_LIBRARY_PATH=.:~/miniconda3/lib
-./verifier --config config.yaml
+if ! pgrep -f "./verifier --config" > /dev/null
+then
+    echo "Verifier is not running. Restarting..."
+    pm2 restart cysic-verifier
+fi
 EOF
 
-chmod +x start.sh
+chmod +x /home/ubuntu/cysic-verifier/health_check.sh
 
-# 创建 PM2 配置文件
-cat << EOF > verifier.config.js
-module.exports = {
-  apps : [{
-    name: "cysic-verifier",
-    script: "./start.sh",
-    cwd: "/home/ubuntu/cysic-verifier",
-    watch: false,
-    autorestart: true,
-    restart_delay: 10000,
-    max_restarts: 10,
-    env: {
-      NODE_ENV: "production",
-    }
-  }]
-}
-EOF
+# 使用 PM2 启动验证器，并设置健康检查
+pm2 start ./verifier --name cysic-verifier -- --config ./
+pm2 start /home/ubuntu/cysic-verifier/health_check.sh --name verifier-health-check --cron "*/5 * * * *"
 
-# 使用 PM2 启动验证器
-pm2 start verifier.config.js
-
-# 设置 PM2 在系统启动时自动运行
+# 设置 PM2 在系统重启后自动启动
 pm2 startup
 pm2 save
 
-echo "验证器设置完成并已启动。您可以使用 'pm2 status' 查看运行状态。"
-echo "-----------------------------"
-echo "您可以使用以下命令来管理验证器："
-echo "- 查看运行状态：pm2 status"
-echo "- 查看日志：pm2 logs cysic-verifier"
-echo "- 停止验证器：pm2 stop cysic-verifier"
-echo "- 重启验证器：pm2 restart cysic-verifier"
-echo "-----------------------------"
-echo "感谢使用！
+echo "验证器安装完成并已启动！"
+echo "使用以下命令查看验证器状态："
+echo "pm2 status cysic-verifier"
+echo "使用以下命令查看验证器日志："
+echo "pm2 logs cysic-verifier"
+echo "验证器将在掉线后自动重启。"
+echo "健康检查脚本每5分钟运行一次，确保验证器持续运行。"
+echo "如需手动重启验证器，请使用命令："
+echo "pm2 restart cysic-verifier"
+
+# 提醒用户重启系统以应用所有更改
+echo "建议重启系统以确保所有更改生效。"
+echo "您可以使用以下命令重启系统："
+echo "sudo reboot"
