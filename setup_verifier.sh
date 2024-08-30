@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# 作者: mang
+# 免责声明: 本脚本仅供学习和参考使用，作者不对使用本脚本造成的任何损失负责。
+
+echo "欢迎使用验证器安装脚本！"
+echo "作者: mang"
+echo "-----------------------------"
+
 # 检查是否以 root 权限运行
 if [ "$EUID" -ne 0 ]; then
   echo "请以 root 权限运行此脚本"
@@ -84,3 +91,11 @@ pm2 startup
 pm2 save
 
 echo "验证器设置完成并已启动。您可以使用 'pm2 status' 查看运行状态。"
+echo "-----------------------------"
+echo "您可以使用以下命令来管理验证器："
+echo "- 查看运行状态：pm2 status"
+echo "- 查看日志：pm2 logs cysic-verifier"
+echo "- 停止验证器：pm2 stop cysic-verifier"
+echo "- 重启验证器：pm2 restart cysic-verifier"
+echo "-----------------------------"
+echo "感谢使用！
