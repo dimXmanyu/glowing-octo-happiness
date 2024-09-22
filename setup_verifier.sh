@@ -6,21 +6,48 @@ LANG_OPTIONS[1]="English"
 LANG_OPTIONS[2]="中文"
 LANG_OPTIONS[3]="한국어"
 
-# 定义消息
-declare -A MESSAGES
-MESSAGES["menu_title"]="请选择一个操作："
-MESSAGES["install_node_pm2"]="安装 Node.js 和 PM2"
-MESSAGES["download_configure_verifier"]="下载并配置 Cysic Verifier"
-MESSAGES["set_reward_address"]="设置奖励地址"
-MESSAGES["start_verifier_first_time"]="首次启动 Verifier"
-MESSAGES["manage_verifier_pm2"]="使用 PM2 自动管理 Verifier"
-MESSAGES["exit"]="退出"
-MESSAGES["choose_language"]="请选择显示语言："
-MESSAGES["invalid_choice"]="无效的选择，请重新输入。"
-MESSAGES["input_reward_address"]="请输入奖励地址："
+# English messages
+declare -A msgs_en
+msgs_en[menu_title]="Please choose an operation:"
+msgs_en[install_node_pm2]="Install Node.js and PM2"
+msgs_en[download_configure_verifier]="Download and configure Cysic Verifier"
+msgs_en[set_reward_address]="Set reward address"
+msgs_en[start_verifier_first_time]="Start Verifier for the first time"
+msgs_en[manage_verifier_pm2]="Manage Verifier with PM2"
+msgs_en[exit]="Exit"
+msgs_en[choose_language]="Please select a language:"
+msgs_en[invalid_choice]="Invalid choice, please try again."
+msgs_en[input_reward_address]="Please enter the reward address:"
 
-# 设置默认语言为中文
+# Chinese messages
+declare -A msgs_zh
+msgs_zh[menu_title]="请选择一个操作："
+msgs_zh[install_node_pm2]="安装 Node.js 和 PM2"
+msgs_zh[download_configure_verifier]="下载并配置 Cysic Verifier"
+msgs_zh[set_reward_address]="设置奖励地址"
+msgs_zh[start_verifier_first_time]="首次启动 Verifier"
+msgs_zh[manage_verifier_pm2]="使用 PM2 自动管理 Verifier"
+msgs_zh[exit]="退出"
+msgs_zh[choose_language]="请选择显示语言："
+msgs_zh[invalid_choice]="无效的选择，请重新输入。"
+msgs_zh[input_reward_address]="请输入奖励地址："
+
+# Korean messages
+declare -A msgs_ko
+msgs_ko[menu_title]="작업을 선택하세요:"
+msgs_ko[install_node_pm2]="Node.js 및 PM2 설치"
+msgs_ko[download_configure_verifier]="Cysic 검증자 다운로드 및 구성"
+msgs_ko[set_reward_address]="보상 주소 설정"
+msgs_ko[start_verifier_first_time]="처음으로 검증자 시작"
+msgs_ko[manage_verifier_pm2]="PM2로 검증자 관리"
+msgs_ko[exit]="종료"
+msgs_ko[choose_language]="언어를 선택하세요:"
+msgs_ko[invalid_choice]="잘못된 선택입니다. 다시 시도하십시오."
+msgs_ko[input_reward_address]="보상 주소를 입력하십시오:"
+
+# 默认语言为中文
 LANGUAGE=2
+msgs=msgs_zh
 
 # 切换语言
 change_language() {
@@ -38,13 +65,13 @@ change_language() {
 
 # 显示菜单
 show_menu() {
-    echo "${MESSAGES["menu_title"]}"
-    echo "1) ${MESSAGES["choose_language"]}"
-    echo "2) ${MESSAGES["install_node_pm2"]}"
-    echo "3) ${MESSAGES["set_reward_address"]}"
-    echo "4) ${MESSAGES["start_verifier_first_time"]}"
-    echo "5) ${MESSAGES["manage_verifier_pm2"]}"
-    echo "6) ${MESSAGES["exit"]}"
+    echo "${msgs[menu_title]}"
+    echo "1) ${msgs[choose_language]}"
+    echo "2) ${msgs[install_node_pm2]}"
+    echo "3) ${msgs[set_reward_address]}"
+    echo "4) ${msgs[start_verifier_first_time]}"
+    echo "5) ${msgs[manage_verifier_pm2]}"
+    echo "6) ${msgs[exit]}"
 }
 
 # 安装 Node.js 和 PM2
