@@ -182,19 +182,14 @@ start_verifier() {
     
     echo "${msgs[13]}"  # "验证器正在启动。日志信息将会显示..."
     
-    # 启动验证器并实时显示输出
-    ./verifier &
+    # 使用 timeout 命令运行验证器，允许在任意时刻通过按键中断
+    timeout --foreground --preserve-status 86400 ./verifier &
     verifier_pid=$!
-    
-    # 使用 tail 命令实时显示日志
-    tail -f verifier_output.log &
-    tail_pid=$!
     
     echo "${msgs[17]}"  # "验证器正在运行。按任意键停止并返回主菜单。"
     read -n 1 -s -r
     
-    # 停止 tail 进程和验证器进程
-    kill $tail_pid 2>/dev/null
+    # 停止验证器进程
     kill $verifier_pid 2>/dev/null
     
     echo "${msgs[18]}"  # "验证器已停止。"
