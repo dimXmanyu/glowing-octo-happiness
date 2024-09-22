@@ -180,13 +180,18 @@ start_verifier() {
     export CHAIN_ID=534352
     chmod +x verifier
     echo "${msgs[13]}"  # 显示启动消息
-    ./verifier
+    ./verifier &  # 在后台运行 verifier
+    verifier_pid=$!  # 获取 verifier 的进程 ID
+    echo "${msgs[14]}: $verifier_pid"  # 显示进程 ID
+    echo "${msgs[15]}"  # 提示用户 verifier 正在运行
+    echo "${msgs[16]}"  # 提示用户如何返回主菜单
+    read -n 1 -s -r  # 等待用户按任意键
+    kill $verifier_pid 2>/dev/null  # 尝试终止 verifier 进程
     echo
     echo "${msgs[18]}"  # 显示结束消息
     echo "${msgs[19]}"  # 显示"按任意键继续"消息
     read -n 1 -s -r
     clear
-    show_menu
 }
 
 manage_verifier_pm2() {
