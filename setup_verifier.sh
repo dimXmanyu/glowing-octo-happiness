@@ -18,7 +18,6 @@ msgs_en=(
     "Invalid address format. Please enter a valid Ethereum address (0x followed by 40 hexadecimal characters)."
     "Failed to update reward address. Please check the config.yaml file manually."
 )
-)
 
 msgs_zh=(
     "选择语言："
