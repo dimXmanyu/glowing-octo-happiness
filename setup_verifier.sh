@@ -27,6 +27,8 @@ msgs_en=(
     "PM2 Verifier stopped."
     "Uninstalling Cysic Verifier..."
     "Cysic Verifier has been uninstalled."
+    "Configure Swap Memory"
+    "Swap memory configured successfully."
 )
 
 msgs_zh=(
@@ -56,6 +58,8 @@ msgs_zh=(
     "PM2 验证器已停止。"
     "正在卸载 Cysic 验证器..."
     "Cysic 验证器已卸载。"
+    "配置 Swap 内存"
+    "Swap 内存配置成功。"
 )
 
 msgs_ko=(
@@ -85,6 +89,8 @@ msgs_ko=(
     "PM2 검증자가 중지되었습니다."
     "Cysic 검증자를 제거하는 중..."
     "Cysic 검증자가 제거되었습니다."
+    "스왑 메모리 구성"
+    "스왑 메모리가 성공적으로 구성되었습니다."
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -124,7 +130,20 @@ show_menu() {
     echo "8. ${msgs[20]}"
     echo "9. ${msgs[21]}"
     echo "10. ${msgs[9]}"
+    echo "11. ${msgs[26]}" 
     echo "----------------------------------------"
+}
+
+configure_swap() {
+    sudo -i <<EOF
+fallocate -l 4G /swapfile.img
+chmod 600 /swapfile.img
+mkswap /swapfile.img
+swapon /swapfile.img
+echo '/swapfile.img swap swap defaults 0 0' >> /etc/fstab
+exit
+EOF
+    echo "${msgs[27]}"  # Swap 内存配置成功。
 }
 
 install_node_pm2() {
@@ -254,6 +273,7 @@ case $choice in
     8) stop_pm2_verifier ;;
     9) uninstall_verifier ;;
     10) exit 0 ;;
+    11) configure_swap ;; 
     *) echo "${msgs[2]}" ;;
 esac
     echo
