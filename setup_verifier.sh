@@ -18,6 +18,7 @@ msgs_en[exit]="Exit"
 msgs_en[choose_language]="Please select a language:"
 msgs_en[invalid_choice]="Invalid choice, please try again."
 msgs_en[input_reward_address]="Please enter the reward address:"
+msgs_en[input_choice]="Enter your choice"
 
 # Chinese messages
 declare -A msgs_zh
@@ -31,6 +32,7 @@ msgs_zh[exit]="退出"
 msgs_zh[choose_language]="请选择显示语言："
 msgs_zh[invalid_choice]="无效的选择，请重新输入。"
 msgs_zh[input_reward_address]="请输入奖励地址："
+msgs_zh[input_choice]="输入您的选择"
 
 # Korean messages
 declare -A msgs_ko
@@ -44,6 +46,7 @@ msgs_ko[exit]="종료"
 msgs_ko[choose_language]="언어를 선택하세요:"
 msgs_ko[invalid_choice]="잘못된 선택입니다. 다시 시도하십시오."
 msgs_ko[input_reward_address]="보상 주소를 입력하십시오:"
+msgs_ko[input_choice]="선택을 입력하세요"
 
 # 默认语言为中文
 LANGUAGE=2
@@ -51,115 +54,80 @@ msgs=msgs_zh
 
 # 切换语言
 change_language() {
-    echo "${MESSAGES["choose_language"]}"
+    echo "${msgs[choose_language]}"
     echo "1) English"
     echo "2) 中文"
     echo "3) 한국어"
-    read -p "输入您的选择: " lang_choice
+    read -p "${msgs[input_choice]}: " lang_choice
     if [[ $lang_choice -ge 1 && $lang_choice -le 3 ]]; then
         LANGUAGE=$lang_choice
+        case $LANGUAGE in
+            1) msgs=msgs_en ;;
+            2) msgs=msgs_zh ;;
+            3) msgs=msgs_ko ;;
+        esac
     else
-        echo "${MESSAGES["invalid_choice"]}"
+        echo "${msgs[invalid_choice]}"
     fi
 }
 
 # 显示菜单
 show_menu() {
     echo "${msgs[menu_title]}"
-    echo "1) ${msgs[choose_language]}"
-    echo "2) ${msgs[install_node_pm2]}"
+    echo "1) ${msgs[install_node_pm2]}"
+    echo "2) ${msgs[download_configure_verifier]}"
     echo "3) ${msgs[set_reward_address]}"
     echo "4) ${msgs[start_verifier_first_time]}"
     echo "5) ${msgs[manage_verifier_pm2]}"
     echo "6) ${msgs[exit]}"
+    echo "7) ${LANG_OPTIONS[$LANGUAGE]}"
 }
 
 # 安装 Node.js 和 PM2
 install_node_pm2() {
-    echo "${MESSAGES["install_node_pm2"]}..."
-    sudo apt update
-    sudo apt install -y nodejs npm
-    sudo npm install -g pm2
-    echo "${MESSAGES["install_node_pm2"]} 完成。"
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    sudo npm install pm2 -g
 }
 
 # 下载并配置 Cysic Verifier
 download_configure_verifier() {
-    echo "${MESSAGES["download_configure_verifier"]}..."
-    rm -rf ~/cysic-verifier
-    mkdir ~/cysic-verifier
-    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier
-    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so
-
-    cat <<EOF > ~/cysic-verifier/config.yaml
-# Not Change
-chain:
-  # Not Change
-  endpoint: "testnet-node-1.prover.xyz:9090"
-  # Not Change
-  chain_id: "cysicmint_9000-1"
-  # Not Change
-  gas_coin: "cysic"
-  # Not Change
-  gas_price: 10
-  # Modify Here： ! Your Address (EVM) submitted to claim rewards
-claim_reward_address: "0x696969"
-
-server:
-  # don't modify this
-  cysic_endpoint: "https://api-testnet.prover.xyz"
-EOF
-
-    echo "${MESSAGES["download_configure_verifier"]} 完成。"
+    git clone https://github.com/cysic-labs/cysic-zk-verifier.git
+    cd cysic-zk-verifier
+    npm install
 }
 
 # 设置奖励地址
 set_reward_address() {
-    read -p "${MESSAGES["input_reward_address"]}" reward_address
-    sed -i "s/claim_reward_address: \"0x696969\"/claim_reward_address: \"$reward_address\"/" ~/cysic-verifier/config.yaml
-    echo "${MESSAGES["set_reward_address"]} 完成。"
+    read -p "${msgs[input_reward_address]}" reward_address
+    echo "REWARD_ADDRESS=$reward_address" > .env
 }
 
 # 首次启动 Verifier
 start_verifier_first_time() {
-    echo "${MESSAGES["start_verifier_first_time"]}..."
-    cd ~/cysic-verifier/
-    export LD_LIBRARY_PATH=.:~/miniconda3/lib
-    export CHAIN_ID=534352
-    chmod +x verifier
-    ./verifier
-    echo "${MESSAGES["start_verifier_first_time"]} 完成。"
+    npm run start
 }
 
-# 使用 PM2 自动管理 Verifier
+# 使用 PM2 管理 Verifier
 manage_verifier_pm2() {
-    echo "${MESSAGES["manage_verifier_pm2"]}..."
-    cd ~/cysic-verifier/
-    export LD_LIBRARY_PATH=.:~/miniconda3/lib
-    export CHAIN_ID=534352
-    pm2 start ./verifier --name cysic-verifier
+    pm2 start npm --name "cysic-verifier" -- run start
     pm2 save
-    echo "${MESSAGES["manage_verifier_pm2"]} 完成。"
+    pm2 startup
 }
 
 # 主循环
 while true; do
     show_menu
-    read -p "输入您的选择: " choice
+    read -p "${msgs[input_choice]}: " choice
     case $choice in
-        1) change_language ;;
-        2) 
-            install_node_pm2
-            download_configure_verifier
-            ;;
+        1) install_node_pm2 ;;
+        2) download_configure_verifier ;;
         3) set_reward_address ;;
         4) start_verifier_first_time ;;
         5) manage_verifier_pm2 ;;
-        6) 
-            echo "${MESSAGES["exit"]}"
-            exit 0
-            ;;
-        *) echo "${MESSAGES["invalid_choice"]}" ;;
+        6) exit 0 ;;
+        7) change_language ;;
+        *) echo "${msgs[invalid_choice]}" ;;
     esac
     echo
 done
