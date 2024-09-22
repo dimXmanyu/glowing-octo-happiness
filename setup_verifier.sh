@@ -97,9 +97,22 @@ install_node_pm2() {
 
 # 下载并配置 Cysic Verifier
 download_configure_verifier() {
-    git clone https://github.com/cysic-labs/cysic-verifier.git
-    cd cysic-verifier
-    npm install
+    echo "Configuring Cysic Verifier..."
+    
+    # 删除旧的 cysic-verifier 目录（如果存在）
+    rm -rf ~/cysic-verifier
+    
+    # 创建新的 cysic-verifier 目录
+    mkdir -p ~/cysic-verifier
+    
+    # 下载 verifier 和 libzkp.so 文件
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so
+    
+    # 设置可执行权限
+    chmod +x ~/cysic-verifier/verifier
+    
+    echo "Cysic Verifier configuration completed."
 }
 
 # 设置奖励地址
