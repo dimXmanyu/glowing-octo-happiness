@@ -179,14 +179,25 @@ start_verifier() {
     export LD_LIBRARY_PATH=.:~/miniconda3/lib
     export CHAIN_ID=534352
     chmod +x verifier
-    echo "${msgs[13]}"  # "Verifier started. Press any key to return to the main menu..."
-    ./verifier > verifier_output.log 2>&1 &
+    
+    echo "${msgs[13]}"  # "验证器正在启动。日志信息将会显示..."
+    
+    # 启动验证器并实时显示输出
+    ./verifier &
     verifier_pid=$!
-    echo "${msgs[17]}"  # "Verifier is running. Press any key to stop and return to the main menu."
+    
+    # 使用 tail 命令实时显示日志
+    tail -f verifier_output.log &
+    tail_pid=$!
+    
+    echo "${msgs[17]}"  # "验证器正在运行。按任意键停止并返回主菜单。"
     read -n 1 -s -r
-    kill -9 $verifier_pid 2>/dev/null
-    sleep 1
-    echo "${msgs[18]}"  # "Verifier stopped."
+    
+    # 停止 tail 进程和验证器进程
+    kill $tail_pid 2>/dev/null
+    kill $verifier_pid 2>/dev/null
+    
+    echo "${msgs[18]}"  # "验证器已停止。"
     sleep 2
     clear
 }
