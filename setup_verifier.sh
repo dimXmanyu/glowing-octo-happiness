@@ -118,9 +118,9 @@ change_language() {
 show_menu() {
     echo "----------------------------------------"
     echo "${msgs[3]}"
-    echo "作者: mang"
     case $LANGUAGE in
         1)  # English
+            echo "Free sharing----------作者: mang"
             echo "If you have any questions, please contact us on Discord"
             echo "----------------------------------------"
             echo "1. Change Language"
@@ -135,6 +135,7 @@ show_menu() {
             echo "10. Extend Memory (Run this command if killed due to insufficient memory)"
             ;;
         2)  # 中文
+            echo "免费----------作者: mang"
             echo "如果有任何问题，请在Discord 联系"
             echo "----------------------------------------"
             echo "1. 选择语言"
@@ -149,6 +150,7 @@ show_menu() {
             echo "10. 扩展内存（如果因内存不足，killed）运行此命令"
             ;;
         3)  # 한국어
+            echo "무료 공유----------作者: mang"
             echo "문의 사항이 있으시면 Discord로 연락해 주세요"
             echo "----------------------------------------"
             echo "1. 언어 선택"
@@ -231,16 +233,14 @@ start_verifier() {
     export CHAIN_ID=534352
     chmod +x verifier
     
-    echo "${msgs[13]}"  # "验证器正在启动。日志信息将会显示..."
+    echo "${msgs[13]}"  
     
-    # 使用 timeout 命令运行验证器，允许在任意时刻通过按键中断
     timeout --foreground --preserve-status 86400 ./verifier &
     verifier_pid=$!
     
-    echo "${msgs[17]}"  # "验证器正在运行。按任意键停止并返回主菜单。"
+    echo "${msgs[17]}"  
     read -n 1 -s -r
     
-    # 停止验证器进程
     kill $verifier_pid 2>/dev/null
     
     sleep 2
