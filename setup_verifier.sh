@@ -4,7 +4,7 @@ msgs_en=(
     "Choose language:"
     "Enter your choice: "
     "Invalid choice. Please try again."
-    "Cysic Verifier Management Menu"
+    "One-click Start Cysic Verifier"
     "Install Node.js and PM2"
     "Download and configure Cysic Verifier"
     "Set reward address"
@@ -35,7 +35,7 @@ msgs_zh=(
     "选择语言："
     "请输入您的选择： "
     "无效的选择。请重试。"
-    "Cysic 验证器管理菜单"
+    "一键启动Cysic Verifier"
     "安装 Node.js 和 PM2"
     "下载并配置 Cysic 验证器"
     "设置奖励地址"
@@ -65,7 +65,7 @@ msgs_ko=(
     "언어 선택:"
     "선택을 입력하세요: "
     "잘못된 선택입니다. 다시 시도해주세요."
-    "Cysic 검증자 관리 메뉴"
+    "원클릭 Cysic Verifier 시작"
     "Node.js 및 PM2 설치"
     "Cysic 검증자 다운로드 및 구성"
     "보상 주소 설정"
@@ -131,7 +131,7 @@ show_menu() {
             echo "7. Stop Cysic Verifier"
             echo "8. Uninstall Cysic Verifier"
             echo "9. Exit"
-            echo "10. Extend Memory (Run if Cysic Verifier was killed due to insufficient memory)"
+            echo "10. Extend Memory (Run this command if killed due to insufficient memory)"
             ;;
         2)  # 中文
             echo "1. 选择语言"
@@ -143,7 +143,7 @@ show_menu() {
             echo "7. 停止运行Cysic Verifier"
             echo "8. 卸载Cysic Verifier"
             echo "9. 退出"
-            echo "10. 扩展内存（如果因内存不足，Cysic Verifier killed）运行此命令"
+            echo "10. 扩展内存（如果因内存不足，killed）运行此命令"
             ;;
         3)  # 한국어
             echo "1. 언어 선택"
@@ -152,10 +152,10 @@ show_menu() {
             echo "4. Verifier 임시 시작 (처음 실행하는 경우 실행하지 마세요)"
             echo "5. Verifier 시작"
             echo "6. 블록 정보 보기"
-            echo "7. Cysic Verifier 중지"
-            echo "8. Cysic Verifier 제거"
+            echo "7.  Verifier 중지"
+            echo "8.  Verifier 제거"
             echo "9. 종료"
-            echo "10. 메모리 확장 (메모리 부족으로 Cysic Verifier가 종료된 경우 실행)"
+            echo "10. 메모리 확장 (메모리 부족으로 종료된 경우 이 명령어를 실행하세요)"
             ;;
     esac
     echo "----------------------------------------"
