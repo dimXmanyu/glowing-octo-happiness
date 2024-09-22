@@ -119,12 +119,11 @@ show_menu() {
     echo "----------------------------------------"
     echo "${msgs[3]}"
     echo "作者: mang"
-    echo "如果有任何问题，请在Discord 联系"
-    echo "If you have any questions, please contact us on Discord"
     echo "문의 사항이 있으시면 Discord로 연락해 주세요"
-    echo "----------------------------------------"
     case $LANGUAGE in
         1)  # English
+            echo "If you have any questions, please contact us on Discord"
+            echo "----------------------------------------"
             echo "1. Change Language"
             echo "2. Download, Install and Configure Environment"
             echo "3. Set Reward Address"
@@ -137,6 +136,8 @@ show_menu() {
             echo "10. Extend Memory (Run this command if killed due to insufficient memory)"
             ;;
         2)  # 中文
+            echo "如果有任何问题，请在Discord 联系"
+            echo "----------------------------------------"
             echo "1. 选择语言"
             echo "2. 下载安装配置环境"
             echo "3. 设置奖励地址"
@@ -149,6 +150,8 @@ show_menu() {
             echo "10. 扩展内存（如果因内存不足，killed）运行此命令"
             ;;
         3)  # 한국어
+            echo "문의 사항이 있으시면 Discord로 연락해 주세요"
+            echo "----------------------------------------"
             echo "1. 언어 선택"
             echo "2. 환경 다운로드, 설치 및 구성"
             echo "3. 보상 주소 설정"
