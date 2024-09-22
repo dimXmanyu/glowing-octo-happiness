@@ -176,17 +176,15 @@ set_reward_address() {
 
 start_verifier() {
     cd ~/cysic-verifier/
-    export LD_LIBRARY_PATH=.:$HOME/cysic-verifier:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=.:~/miniconda3/lib
     export CHAIN_ID=534352
     chmod +x verifier
-    ./verifier &
-    VERIFIER_PID=$!
-    echo "${msgs[13]}"
-    read -n 1 -s -r
-    kill $VERIFIER_PID 2>/dev/null
-    wait $VERIFIER_PID 2>/dev/null
+    echo "${msgs[13]}"  # 显示启动消息
+    ./verifier
     echo
-    echo "${msgs[18]}"
+    echo "${msgs[18]}"  # 显示结束消息
+    echo "${msgs[19]}"  # 显示"按任意键继续"消息
+    read -n 1 -s -r
     clear
     show_menu
 }
