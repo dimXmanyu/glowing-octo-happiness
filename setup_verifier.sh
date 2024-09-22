@@ -18,11 +18,20 @@ msgs_en=(
     "Invalid address format. Please enter a valid Ethereum address (0x followed by 40 hexadecimal characters)."
     "Failed to update reward address. Please check the config.yaml file manually."
     "PM2 configuration completed. The verifier will start automatically after system reboot."
+    "Verifier is running. Press any key to stop and return to the main menu."
+    "Verifier stopped."
+    "View PM2 Verifier logs"
+    "Stop PM2 Verifier"
+    "Uninstall Cysic Verifier"
+    "Viewing PM2 Verifier logs. Press Ctrl+C to exit."
+    "PM2 Verifier stopped."
+    "Uninstalling Cysic Verifier..."
+    "Cysic Verifier has been uninstalled."
 )
 
 msgs_zh=(
     "选择语言："
-    "请输入您的选择："
+    "请输入您的选择： "
     "无效的选择。请重试。"
     "Cysic 验证器管理菜单"
     "安装 Node.js 和 PM2"
@@ -32,12 +41,21 @@ msgs_zh=(
     "使用 PM2 管理验证器"
     "退出"
     "更改语言"
-    "输入奖励地址："
+    "输入奖励地址： "
     "Cysic 验证器配置完成。"
     "验证器已启动。按任意键返回主菜单..."
-    "地址格式无效。请输入有效的以太坊地址（0x后跟40个十六进制字符）。"
-    "更新奖励地址失败。请手动检查config.yaml文件。"
-    "PM2 配置完成，验证器将在系统重启后自动启动。"
+    "地址格式无效。请输入有效的以太坊地址（0x 后跟 40 个十六进制字符）。"
+    "更新奖励地址失败。请手动检查 config.yaml 文件。"
+    "PM2 配置完成。系统重启后验证器将自动启动。"
+    "验证器正在运行。按任意键停止并返回主菜单。"
+    "验证器已停止。"
+    "查看 PM2 验证器日志"
+    "停止 PM2 验证器"
+    "卸载 Cysic 验证器"
+    "正在查看 PM2 验证器日志。按 Ctrl+C 退出。"
+    "PM2 验证器已停止。"
+    "正在卸载 Cysic 验证器..."
+    "Cysic 验证器已卸载。"
 )
 
 msgs_ko=(
@@ -54,10 +72,19 @@ msgs_ko=(
     "언어 변경"
     "보상 주소 입력: "
     "Cysic 검증자 구성이 완료되었습니다."
-    "검증기가 시작되었습니다. 아무 키나 눌러 메인 메뉴로 돌아가세요..."
-    "주소 형식이 잘못되었습니다. 유효한 이더리움 주소를 입력하세요 (0x로 시작하는 40개의 16진수 문자)."
+    "검증자가 시작되었습니다. 아무 키나 눌러 메인 메뉴로 돌아가세요..."
+    "잘못된 주소 형식입니다. 유효한 이더리움 주소를 입력하세요 (0x 다음에 40개의 16진수 문자)."
     "보상 주소 업데이트에 실패했습니다. config.yaml 파일을 수동으로 확인해주세요."
-    "PM2 配置完成，验证器将在系统重启后自动启动。"
+    "PM2 구성이 완료되었습니다. 시스템 재부팅 후 검증자가 자동으로 시작됩니다."
+    "검증자가 실행 중입니다. 아무 키나 눌러 중지하고 메인 메뉴로 돌아가세요."
+    "검증자가 중지되었습니다."
+    "PM2 검증자 로그 보기"
+    "PM2 검증자 중지"
+    "Cysic 검증자 제거"
+    "PM2 검증자 로그를 보고 있습니다. 종료하려면 Ctrl+C를 누르세요."
+    "PM2 검증자가 중지되었습니다."
+    "Cysic 검증자를 제거하는 중..."
+    "Cysic 검증자가 제거되었습니다."
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -84,14 +111,20 @@ change_language() {
 }
 
 show_menu() {
+    echo "----------------------------------------"
     echo "${msgs[3]}"
-    echo "1) ${msgs[4]}"
-    echo "2) ${msgs[5]}"
-    echo "3) ${msgs[6]}"
-    echo "4) ${msgs[7]}"
-    echo "5) ${msgs[8]}"
-    echo "6) ${msgs[9]}"
-    echo "7) ${msgs[10]}"
+    echo "----------------------------------------"
+    echo "1. ${msgs[10]}"
+    echo "2. ${msgs[4]}"
+    echo "3. ${msgs[5]}"
+    echo "4. ${msgs[6]}"
+    echo "5. ${msgs[7]}"
+    echo "6. ${msgs[8]}"
+    echo "7. ${msgs[19]}"
+    echo "8. ${msgs[20]}"
+    echo "9. ${msgs[21]}"
+    echo "10. ${msgs[9]}"
+    echo "----------------------------------------"
 }
 
 install_node_pm2() {
@@ -143,12 +176,17 @@ set_reward_address() {
 
 start_verifier() {
     cd ~/cysic-verifier/
-    export LD_LIBRARY_PATH=.:~/miniconda3/lib
+    export LD_LIBRARY_PATH=.!~/miniconda3/lib
     export CHAIN_ID=534352
     chmod +x verifier
     ./verifier &
+    VERIFIER_PID=$!
     echo "${msgs[13]}"
     read -n 1 -s -r
+    kill $VERIFIER_PID 2>/dev/null
+    wait $VERIFIER_PID 2>/dev/null
+    echo
+    echo "${msgs[18]}"
     clear
     show_menu
 }
@@ -179,20 +217,38 @@ EOF
     show_menu
 }
 
+view_pm2_logs() {
+    echo "${msgs[22]}"
+    pm2 logs cysic-verifier
+}
+
+stop_pm2_verifier() {
+    pm2 stop cysic-verifier
+    echo "${msgs[23]}"
+}
+
+uninstall_verifier() {
+    echo "${msgs[24]}"
+    pm2 delete cysic-verifier 2>/dev/null
+    rm -rf ~/cysic-verifier
+    echo "${msgs[25]}"
+}
+
 while true; do
     show_menu
     read -p "${msgs[1]}" choice
-    case $choice in
-        1) install_node_pm2 ;;
-        2) download_configure_verifier ;;
-        3) set_reward_address ;;
-        4) start_verifier ;;  
-        5) manage_verifier_pm2 ;;
-        6) exit 0 ;;
-        7) change_language ;;
-        *) echo "${msgs[2]}" ;;
-    esac
-    echo
-    echo "${msgs[12]}"
+case $choice in
+    1) change_language ;;
+    2) install_node_pm2 ;;
+    3) download_configure_verifier ;;
+    4) set_reward_address ;;
+    5) start_verifier ;;
+    6) manage_verifier_pm2 ;;
+    7) view_pm2_logs ;;
+    8) stop_pm2_verifier ;;
+    9) uninstall_verifier ;;
+    10) exit 0 ;;
+    *) echo "${msgs[2]}" ;;
+esac
     echo
 done
