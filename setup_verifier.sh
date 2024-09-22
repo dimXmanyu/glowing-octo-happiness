@@ -98,26 +98,12 @@ install_node_pm2() {
 # 下载并配置 Cysic Verifier
 download_configure_verifier() {
     echo "Configuring Cysic Verifier..."
-    
-    # 删除旧的 cysic-verifier 目录（如果存在）
-    if [ -d ~/cysic-verifier ]; then
-        echo "Removing old cysic-verifier directory..."
-        rm -rf ~/cysic-verifier || { echo "Failed to remove old directory"; return 1; }
-    fi
-
-    # 创建新的 cysic-verifier 目录
-    echo "Creating new cysic-verifier directory..."
-    mkdir -p ~/cysic-verifier || { echo "Failed to create directory"; return 1; }
-
-    # 下载 verifier 和 libzkp.so 文件
-    echo "Downloading verifier and libzkp.so files..."
-    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier || { echo "Failed to download verifier"; return 1; }
-    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so || { echo "Failed to download libzkp.so"; return 1; }
-
-    # 设置可执行权限
-    echo "Setting executable permissions..."
-    chmod +x ~/cysic-verifier/verifier || { echo "Failed to set permissions"; return 1; }
-
+    rm -rf ~/cysic-verifier
+    cd ~
+    mkdir cysic-verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so
+    chmod +x ~/cysic-verifier/verifier
     echo "Cysic Verifier configuration completed."
 }
 
