@@ -15,6 +15,9 @@ msgs_en=(
     "Enter reward address: "
     "Cysic Verifier configuration completed."
     "Verifier started. Press any key to return to the main menu..."
+    "Invalid address format. Please enter a valid Ethereum address (0x followed by 40 hexadecimal characters)."
+    "Failed to update reward address. Please check the config.yaml file manually."
+)
 )
 
 msgs_zh=(
@@ -32,6 +35,8 @@ msgs_zh=(
     "输入奖励地址："
     "Cysic 验证器配置完成。"
     "验证器已启动。按任意键返回主菜单..."
+    "地址格式无效。请输入有效的以太坊地址（0x后跟40个十六进制字符）。"
+    "更新奖励地址失败。请手动检查config.yaml文件。"
 )
 
 msgs_ko=(
@@ -49,6 +54,8 @@ msgs_ko=(
     "보상 주소 입력: "
     "Cysic 검증자 구성이 완료되었습니다."
     "검증기가 시작되었습니다. 아무 키나 눌러 메인 메뉴로 돌아가세요..."
+    "주소 형식이 잘못되었습니다. 유효한 이더리움 주소를 입력하세요 (0x로 시작하는 40개의 16진수 문자)."
+    "보상 주소 업데이트에 실패했습니다. config.yaml 파일을 수동으로 확인해주세요."
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
