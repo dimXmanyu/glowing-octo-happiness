@@ -104,7 +104,29 @@ download_configure_verifier() {
     curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier
     curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so
     chmod +x ~/cysic-verifier/verifier
+    
+    # Create config.yaml file
+    cat <<EOF > ~/cysic-verifier/config.yaml
+# Not Change
+chain:
+  # Not Change
+  endpoint: "testnet-node-1.prover.xyz:9090"
+  # Not Change
+  chain_id: "cysicmint_9000-1"
+  # Not Change
+  gas_coin: "cysic"
+  # Not Change
+  gas_price: 10
+  # Modify Here： ! Your Address (EVM) submitted to claim rewards
+claim_reward_address: "0x696969"
+
+server:
+  # don't modify this
+  cysic_endpoint: "https://api-testnet.prover.xyz"
+EOF
+
     echo "Cysic Verifier configuration completed."
+    echo "Please remember to modify the claim_reward_address in ~/cysic-verifier/config.yaml"
 }
 
 # 设置奖励地址
@@ -114,8 +136,72 @@ set_reward_address() {
 }
 
 # 首次启动验证器
-start_verifier_first_time() {
-    npm run start
+start_verifier() {
+    case $LANGUAGE in
+        "en")
+            echo "Starting Cysic Verifier..."
+            cd ~/cysic-verifier
+            ./verifier &
+            echo "Cysic Verifier started."
+            
+            echo ""
+            echo "Do you want to return to the main menu or continue?"
+            echo "1. Return to main menu"
+            echo "2. Continue (stay in the current terminal)"
+            read -p "Enter your choice (1 or 2): " choice
+            ;;
+        "zh")
+            echo "正在启动 Cysic 验证器..."
+            cd ~/cysic-verifier
+            ./verifier &
+            echo "Cysic 验证器已启动。"
+            
+            echo ""
+            echo "您想返回主菜单还是继续？"
+            echo "1. 返回主菜单"
+            echo "2. 继续（保持在当前终端）"
+            read -p "请输入您的选择（1 或 2）：" choice
+            ;;
+        "ko")
+            echo "Cysic 검증기를 시작하는 중..."
+            cd ~/cysic-verifier
+            ./verifier &
+            echo "Cysic 검증기가 시작되었습니다."
+            
+            echo ""
+            echo "메인 메뉴로 돌아가시겠습니까, 아니면 계속하시겠습니까?"
+            echo "1. 메인 메뉴로 돌아가기"
+            echo "2. 계속 (현재 터미널에 머무르기)"
+            read -p "선택해 주세요 (1 또는 2): " choice
+            ;;
+    esac
+
+    case $choice in
+        1)
+            case $LANGUAGE in
+                "en") echo "Returning to main menu..." ;;
+                "zh") echo "正在返回主菜单..." ;;
+                "ko") echo "메인 메뉴로 돌아갑니다..." ;;
+            esac
+            ;;
+        2)
+            case $LANGUAGE in
+                "en") echo "Continuing... Press Ctrl+C to exit when you're done." ;;
+                "zh") echo "继续...完成后按 Ctrl+C 退出。" ;;
+                "ko") echo "계속합니다... 완료되면 Ctrl+C를 눌러 종료하세요." ;;
+            esac
+            while true; do
+                sleep 1
+            done
+            ;;
+        *)
+            case $LANGUAGE in
+                "en") echo "Invalid choice. Returning to main menu..." ;;
+                "zh") echo "无效的选择。正在返回主菜单..." ;;
+                "ko") echo "잘못된 선택입니다. 메인 메뉴로 돌아갑니다..." ;;
+            esac
+            ;;
+    esac
 }
 
 # 使用 PM2 管理验证器
