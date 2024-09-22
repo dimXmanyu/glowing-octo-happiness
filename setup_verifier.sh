@@ -139,8 +139,11 @@ set_reward_address() {
 }
 
 start_verifier() {
-    cd ~/cysic-verifier
-    pm2 start npm --name "cysic-verifier" -- run start
+    cd ~/cysic-verifier/
+    export LD_LIBRARY_PATH=.:~/miniconda3/lib
+    export CHAIN_ID=534352
+    chmod +x verifier
+    ./verifier &
     echo "${msgs[13]}"
     read -n 1 -s -r
     clear
