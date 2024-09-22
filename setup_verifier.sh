@@ -14,6 +14,7 @@ msgs_en=(
     "Exit"
     "Change Language"
     "Enter reward address: "
+    "Cysic Verifier configuration completed."
 )
 
 # 中文消息
@@ -30,6 +31,7 @@ msgs_zh=(
     "退出"
     "更改语言"
     "输入奖励地址："
+    "Cysic 验证器配置完成。"
 )
 
 # 韩文消息
@@ -46,6 +48,7 @@ msgs_ko=(
     "종료"
     "언어 변경"
     "보상 주소 입력: "
+    "Cysic 검증자 구성이 완료되었습니다."
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -131,5 +134,7 @@ while true; do
         7) change_language ;;
         *) echo "${msgs[2]}" ;;
     esac
+    echo
+    echo "${msgs[12]}"  # 显示配置完成消息
     echo
 done
