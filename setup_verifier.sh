@@ -131,77 +131,69 @@ EOF
 
 # 设置奖励地址
 set_reward_address() {
-    read -p "${msgs[11]}" reward_address
-    echo "REWARD_ADDRESS=$reward_address" > .env
+    case $LANGUAGE in
+        "en")
+            read -p "Enter your new reward address (e.g., 0x1112254545): " reward_address
+            ;;
+        "zh")
+            read -p "请输入您的新奖励地址（例如：0x1112254545）：" reward_address
+            ;;
+        "ko")
+            read -p "새로운 보상 주소를 입력하세요 (예: 0x1112254545): " reward_address
+            ;;
+    esac
+
+    # 更新 config.yaml 文件
+    sed -i "s/claim_reward_address: \"0x[0-9a-fA-F]*\"/claim_reward_address: \"$reward_address\"/" ~/cysic-verifier/config.yaml
+
+    # 确认更改并提供反馈
+    if grep -q "claim_reward_address: \"$reward_address\"" ~/cysic-verifier/config.yaml; then
+        case $LANGUAGE in
+            "en")
+                echo "Reward address successfully updated to $reward_address"
+                ;;
+            "zh")
+                echo "奖励地址已成功更新为 $reward_address"
+                ;;
+            "ko")
+                echo "보상 주소가 $reward_address 로 성공적으로 업데이트되었습니다"
+                ;;
+        esac
+    else
+        case $LANGUAGE in
+            "en")
+                echo "Failed to update reward address. Please check the config.yaml file manually."
+                ;;
+            "zh")
+                echo "更新奖励地址失败。请手动检查 config.yaml 文件。"
+                ;;
+            "ko")
+                echo "보상 주소 업데이트에 실패했습니다. config.yaml 파일을 수동으로 확인해주세요."
+                ;;
+        esac
+    fi
 }
 
 # 首次启动验证器
 start_verifier() {
+    cd ~/cysic-verifier
+    pm2 start npm --name "cysic-verifier" -- run start
+
     case $LANGUAGE in
         "en")
-            echo "Starting Cysic Verifier..."
-            cd ~/cysic-verifier
-            ./verifier &
-            echo "Cysic Verifier started."
-            
-            echo ""
-            echo "Do you want to return to the main menu or continue?"
-            echo "1. Return to main menu"
-            echo "2. Continue (stay in the current terminal)"
-            read -p "Enter your choice (1 or 2): " choice
+            echo "Verifier started. Press any key to return to the main menu..."
             ;;
         "zh")
-            echo "正在启动 Cysic 验证器..."
-            cd ~/cysic-verifier
-            ./verifier &
-            echo "Cysic 验证器已启动。"
-            
-            echo ""
-            echo "您想返回主菜单还是继续？"
-            echo "1. 返回主菜单"
-            echo "2. 继续（保持在当前终端）"
-            read -p "请输入您的选择（1 或 2）：" choice
+            echo "验证器已启动。按任意键返回主菜单..."
             ;;
         "ko")
-            echo "Cysic 검증기를 시작하는 중..."
-            cd ~/cysic-verifier
-            ./verifier &
-            echo "Cysic 검증기가 시작되었습니다."
-            
-            echo ""
-            echo "메인 메뉴로 돌아가시겠습니까, 아니면 계속하시겠습니까?"
-            echo "1. 메인 메뉴로 돌아가기"
-            echo "2. 계속 (현재 터미널에 머무르기)"
-            read -p "선택해 주세요 (1 또는 2): " choice
+            echo "검증기가 시작되었습니다. 아무 키나 눌러 메인 메뉴로 돌아가세요..."
             ;;
     esac
 
-    case $choice in
-        1)
-            case $LANGUAGE in
-                "en") echo "Returning to main menu..." ;;
-                "zh") echo "正在返回主菜单..." ;;
-                "ko") echo "메인 메뉴로 돌아갑니다..." ;;
-            esac
-            ;;
-        2)
-            case $LANGUAGE in
-                "en") echo "Continuing... Press Ctrl+C to exit when you're done." ;;
-                "zh") echo "继续...完成后按 Ctrl+C 退出。" ;;
-                "ko") echo "계속합니다... 완료되면 Ctrl+C를 눌러 종료하세요." ;;
-            esac
-            while true; do
-                sleep 1
-            done
-            ;;
-        *)
-            case $LANGUAGE in
-                "en") echo "Invalid choice. Returning to main menu..." ;;
-                "zh") echo "无效的选择。正在返回主菜单..." ;;
-                "ko") echo "잘못된 선택입니다. 메인 메뉴로 돌아갑니다..." ;;
-            esac
-            ;;
-    esac
+    read -n 1 -s -r
+    clear
+    show_menu
 }
 
 # 使用 PM2 管理验证器
