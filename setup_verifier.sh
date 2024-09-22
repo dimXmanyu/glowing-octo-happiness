@@ -118,12 +118,17 @@ EOF
 
 set_reward_address() {
     read -p "${msgs[11]}" reward_address
-    sed -i "s/claim_reward_address: \"0x[0-9a-fA-F]*\"/claim_reward_address: \"$reward_address\"/" ~/cysic-verifier/config.yaml
+    if [[ ! "$reward_address" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+        echo "${msgs[14]}"
+        return
+    fi
+    
+    sed -i "s|claim_reward_address: \"0x.*\"|claim_reward_address: \"$reward_address\"|" ~/cysic-verifier/config.yaml
 
     if grep -q "claim_reward_address: \"$reward_address\"" ~/cysic-verifier/config.yaml; then
         echo "${msgs[12]}"
     else
-        echo "Failed to update reward address. Please check the config.yaml file manually."
+        echo "${msgs[15]}"
     fi
 }
 
