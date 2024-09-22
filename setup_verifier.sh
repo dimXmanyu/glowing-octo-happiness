@@ -176,7 +176,7 @@ set_reward_address() {
 
 start_verifier() {
     cd ~/cysic-verifier/
-    export LD_LIBRARY_PATH=.!~/miniconda3/lib
+    export LD_LIBRARY_PATH=.:$HOME/cysic-verifier:$LD_LIBRARY_PATH
     export CHAIN_ID=534352
     chmod +x verifier
     ./verifier &
