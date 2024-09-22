@@ -97,15 +97,12 @@ download_configure_verifier() {
     git clone https://github.com/cysic-labs/cysic-verifier.git
     cd cysic-verifier
     npm install
-    cp .env.example .env
-    nano .env
-    echo "Cysic Verifier downloaded and configured."
 }
+
 # 设置奖励地址
 set_reward_address() {
     read -p "${msgs[11]}" reward_address
-    sed -i "s/^REWARD_ADDRESS=.*/REWARD_ADDRESS=$reward_address/" .env
-    echo "Reward address set to $reward_address"
+    echo "REWARD_ADDRESS=$reward_address" > .env
 }
 
 # 首次启动验证器
