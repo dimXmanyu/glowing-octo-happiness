@@ -61,7 +61,6 @@ msgs_zh=(
     "配置 Swap 内存"
     "Swap 内存配置成功。"
 )
-
 msgs_ko=(
     "언어 선택:"
     "선택을 입력하세요: "
@@ -119,18 +118,48 @@ change_language() {
 show_menu() {
     echo "----------------------------------------"
     echo "${msgs[3]}"
+    echo "Author/作者/저자: Mang"
     echo "----------------------------------------"
-    echo "1. ${msgs[10]}"
-    echo "2. ${msgs[4]}"
-    echo "3. ${msgs[5]}"
-    echo "4. ${msgs[6]}"
-    echo "5. ${msgs[7]}"
-    echo "6. ${msgs[8]}"
-    echo "7. ${msgs[19]}"
-    echo "8. ${msgs[20]}"
-    echo "9. ${msgs[21]}"
-    echo "10. ${msgs[9]}"
-    echo "11. ${msgs[26]}" 
+    case $LANGUAGE in
+        1)  # English
+            echo "1. Change Language"
+            echo "2. Download, Install and Configure Environment"
+            echo "3. Set Reward Address"
+            echo "4. Temporarily Start Verifier (Do not run if it's the first time)"
+            echo "5. Start Verifier"
+            echo "6. View Block Information"
+            echo "7. Stop Cysic Verifier"
+            echo "8. Uninstall Cysic Verifier"
+            echo "9. Exit"
+            echo "10. Extend Memory (Run if Cysic Verifier was killed due to insufficient memory)"
+            ;;
+        2)  # 中文
+            echo "1. 选择语言"
+            echo "2. 下载安装配置环境"
+            echo "3. 设置奖励地址"
+            echo "4. 临时启动Verifier（如果首次运行Verifier，请不要运行此命令）"
+            echo "5. 启动Verifier"
+            echo "6. 查看区块信息"
+            echo "7. 停止运行Cysic Verifier"
+            echo "8. 卸载Cysic Verifier"
+            echo "9. 退出"
+            echo "10. 扩展内存（如果因内存不足，Cysic Verifier killed）运行此命令"
+            ;;
+        3)  # 한국어
+            echo "1. 언어 선택"
+            echo "2. 환경 다운로드, 설치 및 구성"
+            echo "3. 보상 주소 설정"
+            echo "4. Verifier 임시 시작 (처음 실행하는 경우 실행하지 마세요)"
+            echo "5. Verifier 시작"
+            echo "6. 블록 정보 보기"
+            echo "7. Cysic Verifier 중지"
+            echo "8. Cysic Verifier 제거"
+            echo "9. 종료"
+            echo "10. 메모리 확장 (메모리 부족으로 Cysic Verifier가 종료된 경우 실행)"
+            ;;
+    esac
+    echo "----------------------------------------"
+    echo "${msgs[9]} / 退出 / 종료: 9 or Ctrl+C"
     echo "----------------------------------------"
 }
 
@@ -143,16 +172,14 @@ swapon /swapfile.img
 echo '/swapfile.img swap swap defaults 0 0' >> /etc/fstab
 exit
 EOF
-    echo "${msgs[27]}"  # Swap 内存配置成功。
+    echo "${msgs[27]}"  
 }
 
-install_node_pm2() {
+install_and_configure_verifier() {
     curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get install -y nodejs
     sudo npm install pm2 -g
-}
 
-download_configure_verifier() {
     echo "Configuring Cysic Verifier..."
     rm -rf ~/cysic-verifier
     cd ~
@@ -173,7 +200,7 @@ server:
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-    echo "Cysic Verifier configuration completed."
+    echo "${msgs[12]}"  # Cysic Verifier configuration completed.
     echo "Please remember to modify the claim_reward_address in ~/cysic-verifier/config.yaml"
 }
 
@@ -211,13 +238,11 @@ start_verifier() {
     # 停止验证器进程
     kill $verifier_pid 2>/dev/null
     
-    echo "${msgs[18]}"  # "验证器已停止。"
     sleep 2
     clear
 }
 
 manage_verifier_pm2() {
-    # 创建启动脚本
     cat << EOF > ~/cysic-verifier/start.sh
 #!/bin/bash
 export LD_LIBRARY_PATH=.:~/miniconda3/lib
@@ -226,17 +251,13 @@ cd ~/cysic-verifier
 ./verifier
 EOF
 
-    # 添加执行权限
     chmod +x ~/cysic-verifier/start.sh
 
-    # 使用 PM2 启动验证器
     pm2 start ~/cysic-verifier/start.sh --name cysic-verifier
 
-    # 配置 PM2 在系统重启后自动启动验证器
     pm2 startup
     pm2 save
 
-    echo "${msgs[16]}"  # 添加一个新的消息："PM2 配置完成，验证器将在系统重启后自动启动。"
     read -n 1 -s -r
     clear
     show_menu
@@ -262,19 +283,18 @@ uninstall_verifier() {
 while true; do
     show_menu
     read -p "${msgs[1]}" choice
-case $choice in
-    1) change_language ;;
-    2) install_node_pm2 ;;
-    3) download_configure_verifier ;;
-    4) set_reward_address ;;
-    5) start_verifier ;;
-    6) manage_verifier_pm2 ;;
-    7) view_pm2_logs ;;
-    8) stop_pm2_verifier ;;
-    9) uninstall_verifier ;;
-    10) exit 0 ;;
-    11) configure_swap ;; 
-    *) echo "${msgs[2]}" ;;
-esac
+    case $choice in
+        1) change_language ;;
+        2) install_and_configure_verifier ;;  # 合并后的新函数
+        3) set_reward_address ;;
+        4) start_verifier ;;
+        5) manage_verifier_pm2 ;;
+        6) view_pm2_logs ;;
+        7) stop_pm2_verifier ;;
+        8) uninstall_verifier ;;
+        9) exit 0 ;;
+        10) configure_swap ;; 
+        *) echo "${msgs[2]}" ;;
+    esac
     echo
 done
