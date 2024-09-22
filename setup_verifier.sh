@@ -1,44 +1,70 @@
 #!/bin/bash
 
-# 作者: mang
-# 免责声明: 本脚本仅供学习和参考使用，作者不对使用本脚本造成的任何损失负责。
+# 定义语言选项
+declare -A LANG_OPTIONS
+LANG_OPTIONS[1]="English"
+LANG_OPTIONS[2]="中文"
+LANG_OPTIONS[3]="한국어"
 
-echo "欢迎使用验证器安装脚本！"
+# 定义消息
+declare -A MESSAGES
+MESSAGES["menu_title"]="请选择一个操作："
+MESSAGES["install_node_pm2"]="安装 Node.js 和 PM2"
+MESSAGES["download_configure_verifier"]="下载并配置 Cysic Verifier"
+MESSAGES["set_reward_address"]="设置奖励地址"
+MESSAGES["start_verifier_first_time"]="首次启动 Verifier"
+MESSAGES["manage_verifier_pm2"]="使用 PM2 自动管理 Verifier"
+MESSAGES["exit"]="退出"
+MESSAGES["choose_language"]="请选择显示语言："
+MESSAGES["invalid_choice"]="无效的选择，请重新输入。"
+MESSAGES["input_reward_address"]="请输入奖励地址："
 
-# 检查是否以 root 权限运行
-if [ "$EUID" -ne 0 ]; then
-  echo "请以 root 权限运行此脚本"
-  exit 1
-fi
+# 设置默认语言为中文
+LANGUAGE=2
 
-# 扩展虚拟内存
-fallocate -l 4G /swapfile.img
-chmod 600 /swapfile.img
-mkswap /swapfile.img
-swapon /swapfile.img
-echo '/swapfile.img swap swap defaults 0 0' >> /etc/fstab
+# 切换语言
+change_language() {
+    echo "${MESSAGES["choose_language"]}"
+    echo "1) English"
+    echo "2) 中文"
+    echo "3) 한국어"
+    read -p "输入您的选择: " lang_choice
+    if [[ $lang_choice -ge 1 && $lang_choice -le 3 ]]; then
+        LANGUAGE=$lang_choice
+    else
+        echo "${MESSAGES["invalid_choice"]}"
+    fi
+}
 
-# 安装 Node.js 和 npm
-apt update
-apt install -y nodejs npm
+# 显示菜单
+show_menu() {
+    echo "${MESSAGES["menu_title"]}"
+    echo "1) ${MESSAGES["choose_language"]}"
+    echo "2) ${MESSAGES["install_node_pm2"]}"
+    echo "3) ${MESSAGES["set_reward_address"]}"
+    echo "4) ${MESSAGES["start_verifier_first_time"]}"
+    echo "5) ${MESSAGES["manage_verifier_pm2"]}"
+    echo "6) ${MESSAGES["exit"]}"
+}
 
-# 安装 PM2
-npm install -g pm2
+# 安装 Node.js 和 PM2
+install_node_pm2() {
+    echo "${MESSAGES["install_node_pm2"]}..."
+    sudo apt update
+    sudo apt install -y nodejs npm
+    sudo npm install -g pm2
+    echo "${MESSAGES["install_node_pm2"]} 完成。"
+}
 
-# 下载验证器
-rm -rf /home/ubuntu/cysic-verifier
-mkdir -p /home/ubuntu/cysic-verifier
-cd /home/ubuntu/cysic-verifier
+# 下载并配置 Cysic Verifier
+download_configure_verifier() {
+    echo "${MESSAGES["download_configure_verifier"]}..."
+    rm -rf ~/cysic-verifier
+    mkdir ~/cysic-verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so
 
-curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > verifier
-curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > libzkp.so
-chmod +x verifier
-
-# 提示用户输入奖励地址
-read -p "请输入您的奖励地址 (EVM 地址): " reward_address
-
-# 设置验证器配置
-cat << EOF > /home/ubuntu/cysic-verifier/config.yaml
+    cat <<EOF > ~/cysic-verifier/config.yaml
 # Not Change
 chain:
   # Not Change
@@ -50,44 +76,63 @@ chain:
   # Not Change
   gas_price: 10
   # Modify Here： ! Your Address (EVM) submitted to claim rewards
-claim_reward_address: "${reward_address}"
+claim_reward_address: "0x696969"
 
 server:
   # don't modify this
   cysic_endpoint: "https://api-testnet.prover.xyz"
 EOF
 
-# 创建健康检查脚本
-cat << EOF > /home/ubuntu/cysic-verifier/health_check.sh
-#!/bin/bash
-if ! pgrep -f "./verifier --config" > /dev/null
-then
-    echo "Verifier is not running. Restarting..."
-    pm2 restart cysic-verifier
-fi
-EOF
+    echo "${MESSAGES["download_configure_verifier"]} 完成。"
+}
 
-chmod +x /home/ubuntu/cysic-verifier/health_check.sh
+# 设置奖励地址
+set_reward_address() {
+    read -p "${MESSAGES["input_reward_address"]}" reward_address
+    sed -i "s/claim_reward_address: \"0x696969\"/claim_reward_address: \"$reward_address\"/" ~/cysic-verifier/config.yaml
+    echo "${MESSAGES["set_reward_address"]} 完成。"
+}
 
-# 使用 PM2 启动验证器，并设置健康检查
-pm2 start ./verifier --name cysic-verifier -- --config ./
-pm2 start /home/ubuntu/cysic-verifier/health_check.sh --name verifier-health-check --cron "*/5 * * * *"
+# 首次启动 Verifier
+start_verifier_first_time() {
+    echo "${MESSAGES["start_verifier_first_time"]}..."
+    cd ~/cysic-verifier/
+    export LD_LIBRARY_PATH=.:~/miniconda3/lib
+    export CHAIN_ID=534352
+    chmod +x verifier
+    ./verifier
+    echo "${MESSAGES["start_verifier_first_time"]} 完成。"
+}
 
-# 设置 PM2 在系统重启后自动启动
-pm2 startup
-pm2 save
+# 使用 PM2 自动管理 Verifier
+manage_verifier_pm2() {
+    echo "${MESSAGES["manage_verifier_pm2"]}..."
+    cd ~/cysic-verifier/
+    export LD_LIBRARY_PATH=.:~/miniconda3/lib
+    export CHAIN_ID=534352
+    pm2 start ./verifier --name cysic-verifier
+    pm2 save
+    echo "${MESSAGES["manage_verifier_pm2"]} 完成。"
+}
 
-echo "验证器安装完成并已启动！"
-echo "使用以下命令查看验证器状态："
-echo "pm2 status cysic-verifier"
-echo "使用以下命令查看验证器日志："
-echo "pm2 logs cysic-verifier"
-echo "验证器将在掉线后自动重启。"
-echo "健康检查脚本每5分钟运行一次，确保验证器持续运行。"
-echo "如需手动重启验证器，请使用命令："
-echo "pm2 restart cysic-verifier"
-
-# 提醒用户重启系统以应用所有更改
-echo "建议重启系统以确保所有更改生效。"
-echo "您可以使用以下命令重启系统："
-echo "sudo reboot"
+# 主循环
+while true; do
+    show_menu
+    read -p "输入您的选择: " choice
+    case $choice in
+        1) change_language ;;
+        2) 
+            install_node_pm2
+            download_configure_verifier
+            ;;
+        3) set_reward_address ;;
+        4) start_verifier_first_time ;;
+        5) manage_verifier_pm2 ;;
+        6) 
+            echo "${MESSAGES["exit"]}"
+            exit 0
+            ;;
+        *) echo "${MESSAGES["invalid_choice"]}" ;;
+    esac
+    echo
+done
