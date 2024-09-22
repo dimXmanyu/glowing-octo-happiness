@@ -118,7 +118,10 @@ change_language() {
 show_menu() {
     echo "----------------------------------------"
     echo "${msgs[3]}"
-    echo "Author/作者/저자: Mang"
+    echo "作者: mang"
+    echo "如果有任何问题，请在Discord 联系"
+    echo "If you have any questions, please contact us on Discord"
+    echo "문의 사항이 있으시면 Discord로 연락해 주세요"
     echo "----------------------------------------"
     case $LANGUAGE in
         1)  # English
@@ -159,7 +162,7 @@ show_menu() {
             ;;
     esac
     echo "----------------------------------------"
-    echo "${msgs[9]} / 退出 / 종료: 9 or Ctrl+C"
+    echo "${msgs[9]} / : 9 or Ctrl+C"
     echo "----------------------------------------"
 }
 
