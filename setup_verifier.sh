@@ -57,7 +57,7 @@ msgs_ko=(
     "검증기가 시작되었습니다. 아무 키나 눌러 메인 메뉴로 돌아가세요..."
     "주소 형식이 잘못되었습니다. 유효한 이더리움 주소를 입력하세요 (0x로 시작하는 40개의 16진수 문자)."
     "보상 주소 업데이트에 실패했습니다. config.yaml 파일을 수동으로 확인해주세요."
-    "PM2 구성이 완료되었습니다. 검증기는 시스템 재부팅 후 자동으로 시작됩니다."
+    "PM2 配置完成，验证器将在系统重启后自动启动。"
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -68,95 +68,131 @@ msgs=("${msgs_zh[@]}")
 change_language() {
     echo "${msgs[0]}"
     for i in "${!LANG_OPTIONS[@]}"; do
-        echo "$((i+1)). ${LANG_OPTIONS[$i]}"
+        echo "$((i+1))) ${LANG_OPTIONS[$i]}"
     done
-
-    while true; do
-        read -p "${msgs[1]}" choice
-        case $choice in
-            1) LANGUAGE=1; msgs=("${msgs_en[@]}"); break;;
-            2) LANGUAGE=2; msgs=("${msgs_zh[@]}"); break;;
-            3) LANGUAGE=3; msgs=("${msgs_ko[@]}"); break;;
-            *) echo "${msgs[2]}";;
+    read -p "${msgs[1]}" lang_choice
+    if [[ $lang_choice -ge 1 && $lang_choice -le 3 ]]; then
+        LANGUAGE=$lang_choice
+        case $LANGUAGE in
+            1) msgs=("${msgs_en[@]}") ;;
+            2) msgs=("${msgs_zh[@]}") ;;
+            3) msgs=("${msgs_ko[@]}") ;;
         esac
-    done
+    else
+        echo "${msgs[2]}"
+    fi
 }
 
-install_nodejs_pm2() {
-    curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+show_menu() {
+    echo "${msgs[3]}"
+    echo "1) ${msgs[4]}"
+    echo "2) ${msgs[5]}"
+    echo "3) ${msgs[6]}"
+    echo "4) ${msgs[7]}"
+    echo "5) ${msgs[8]}"
+    echo "6) ${msgs[9]}"
+    echo "7) ${msgs[10]}"
+}
+
+install_node_pm2() {
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get install -y nodejs
     sudo npm install pm2 -g
-    echo "Node.js and PM2 installed successfully."
 }
 
 download_configure_verifier() {
-    git clone https://github.com/cysic-labs/cysic-verifier.git
-    cd cysic-verifier
-    npm install
-    echo "Cysic Verifier downloaded and configured."
+    echo "Configuring Cysic Verifier..."
+    rm -rf ~/cysic-verifier
+    cd ~
+    mkdir cysic-verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/verifier_linux > ~/cysic-verifier/verifier
+    curl -L https://cysic-verifiers.oss-accelerate.aliyuncs.com/libzkp.so > ~/cysic-verifier/libzkp.so
+    chmod +x ~/cysic-verifier/verifier
+    
+    cat << EOF > ~/cysic-verifier/config.yaml
+chain:
+  endpoint: "testnet-node-1.prover.xyz:9090"
+  chain_id: "cysicmint_9000-1"
+  gas_coin: "cysic"
+  gas_price: 10
+claim_reward_address: "0x696969"
+
+server:
+  cysic_endpoint: "https://api-testnet.prover.xyz"
+EOF
+
+    echo "Cysic Verifier configuration completed."
+    echo "Please remember to modify the claim_reward_address in ~/cysic-verifier/config.yaml"
 }
 
 set_reward_address() {
-    while true; do
-        read -p "${msgs[11]}" address
-        if [[ $address =~ ^0x[a-fA-F0-9]{40}$ ]]; then
-            sed -i "s/rewardAddress: .*/rewardAddress: \"$address\"/" config.yaml
-            if [ $? -eq 0 ]; then
-                echo "${msgs[12]}"
-                break
-            else
-                echo "${msgs[16]}"
-            fi
-        else
-            echo "${msgs[15]}"
-        fi
-    done
+    read -p "${msgs[11]}" reward_address
+    if [[ ! "$reward_address" =~ ^0x[a-fA-F0-9]{40}$ ]]; then
+        echo "${msgs[14]}"
+        return
+    fi
+    
+    sed -i "s|claim_reward_address: \"0x.*\"|claim_reward_address: \"$reward_address\"|" ~/cysic-verifier/config.yaml
+
+    if grep -q "claim_reward_address: \"$reward_address\"" ~/cysic-verifier/config.yaml; then
+        echo "${msgs[12]}"
+    else
+        echo "${msgs[15]}"
+    fi
 }
 
 start_verifier() {
-    node index.js
+    cd ~/cysic-verifier/
+    export LD_LIBRARY_PATH=.:~/miniconda3/lib
+    export CHAIN_ID=534352
+    chmod +x verifier
+    ./verifier &
     echo "${msgs[13]}"
-    read -n 1 -s -r -p ""
+    read -n 1 -s -r
+    clear
+    show_menu
 }
 
 manage_verifier_pm2() {
-    pm2 start index.js --name cysic-verifier
-    pm2 save
+    # 创建启动脚本
+    cat << EOF > ~/cysic-verifier/start.sh
+#!/bin/bash
+export LD_LIBRARY_PATH=.:~/miniconda3/lib
+export CHAIN_ID=534352
+cd ~/cysic-verifier
+./verifier
+EOF
+
+    # 添加执行权限
+    chmod +x ~/cysic-verifier/start.sh
+
+    # 使用 PM2 启动验证器
+    pm2 start ~/cysic-verifier/start.sh --name cysic-verifier
+
+    # 配置 PM2 在系统重启后自动启动验证器
     pm2 startup
-    echo "${msgs[17]}"
-}
+    pm2 save
 
-display_menu() {
+    echo "${msgs[16]}"  # 添加一个新的消息："PM2 配置完成，验证器将在系统重启后自动启动。"
+    read -n 1 -s -r
     clear
-    echo "============================"
-    echo "${msgs[3]}"
-    echo "============================"
-    echo "1. ${msgs[4]}"
-    echo "2. ${msgs[5]}"
-    echo "3. ${msgs[6]}"
-    echo "4. ${msgs[7]}"
-    echo "5. ${msgs[8]}"
-    echo "6. ${msgs[10]}"
-    echo "7. ${msgs[9]}"
-    echo "============================"
+    show_menu
 }
 
-main() {
-    while true; do
-        display_menu
-        read -p "${msgs[1]}" choice
-        case $choice in
-            1) install_nodejs_pm2 ;;
-            2) download_configure_verifier ;;
-            3) set_reward_address ;;
-            4) start_verifier ;;
-            5) manage_verifier_pm2 ;;
-            6) change_language ;;
-            7) break ;;
-            *) echo "${msgs[2]}" ;;
-        esac
-    done
-    echo "Exiting..."
-}
-
-main
+while true; do
+    show_menu
+    read -p "${msgs[1]}" choice
+    case $choice in
+        1) install_node_pm2 ;;
+        2) download_configure_verifier ;;
+        3) set_reward_address ;;
+        4) start_verifier ;;  
+        5) manage_verifier_pm2 ;;
+        6) exit 0 ;;
+        7) change_language ;;
+        *) echo "${msgs[2]}" ;;
+    esac
+    echo
+    echo "${msgs[12]}"
+    echo
+done
