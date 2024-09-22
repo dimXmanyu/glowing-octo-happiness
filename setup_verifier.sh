@@ -119,7 +119,6 @@ show_menu() {
     echo "----------------------------------------"
     echo "${msgs[3]}"
     echo "作者: mang"
-    echo "문의 사항이 있으시면 Discord로 연락해 주세요"
     case $LANGUAGE in
         1)  # English
             echo "If you have any questions, please contact us on Discord"
