@@ -368,6 +368,7 @@ while true; do
         8) uninstall_verifier ;;
         9) exit 0 ;;
         10) configure_swap ;; 
+        11) download_and_replace_file ;;
         *) echo "${msgs[2]}" ;;
     esac
     echo
