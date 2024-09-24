@@ -137,7 +137,7 @@ show_menu() {
             echo "8. Uninstall Verifier"
             echo "9. Exit"
             echo "10. Extend Memory (Run this command if killed due to insufficient memory)"
-            echo "11. Download and Replace Block Information File"
+            echo "11. ${msgs[28]}"  
             ;;
         2)  # 中文
             echo "免费分享----------作者: mang"
@@ -153,7 +153,7 @@ show_menu() {
             echo "8. 卸载验证器"
             echo "9. 退出"
             echo "10. 扩展内存（如果因内存不足，killed）运行此命令"
-            echo "11. 下载并替换区块信息文件"
+            echo "11. ${msgs[28]}"  # 同步区块信息（仅适用首次运行节点用户）
             ;;
         3)  # 한국어
             echo "무료 공유----------作者: mang"
@@ -169,7 +169,7 @@ show_menu() {
             echo "8. Verifier 제거"
             echo "9. 종료"
             echo "10. 메모리 확장 (메모리 부족으로 종료된 경우 이 명령어를 실행하세요)"
-            echo "11. 블록 정보 파일 다운로드 및 교체"
+            echo "11. ${msgs[28]}"  
             ;;
     esac
     echo "----------------------------------------"
@@ -192,9 +192,33 @@ EOF
 }
 
 install_and_configure_verifier() {
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    sudo npm install pm2 -g
+    echo "Installing Node.js and PM2..."
+    if ! curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -; then
+        echo "Failed to add NodeSource repository. Trying alternative method..."
+        sudo apt update
+        if ! curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -; then
+            echo "Failed to add NodeSource repository for Node.js 16.x. Exiting."
+            return 1
+        fi
+    fi
+
+    if ! sudo apt-get install -y nodejs; then
+        echo "Failed to install Node.js. Exiting."
+        return 1
+    fi
+
+    node -v
+    npm -v
+
+    if ! sudo npm install pm2 -g; then
+        echo "Failed to install PM2 using npm. Trying alternative method..."
+        if ! sudo apt install -y npm && sudo npm install pm2 -g; then
+            echo "Failed to install PM2. Exiting."
+            return 1
+        fi
+    fi
+
+    pm2 -v
 
     echo "Configuring Cysic Verifier..."
     rm -rf ~/cysic-verifier
@@ -297,39 +321,29 @@ uninstall_verifier() {
 download_and_replace_file() {
     echo "${msgs[28]}"  # "Synchronizing block information (Only applicable for first-time node users)"
     
-    # 停止 cysic-verifier
     echo "Stopping cysic-verifier..."
     pm2 stop cysic-verifier
 
-    # 更新包列表并安装 python3-pip
     sudo apt update
     sudo apt install -y python3-pip
 
-    # 安装 gdown
     pip3 install gdown
 
-    # 将 ~/.local/bin 添加到 PATH
     echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
     source ~/.bashrc
 
-    # 创建目标目录（如果不存在）
-    mkdir -p /home/ubuntu/cysic-verifier/dataa
+    mkdir -p /home/ubuntu/cysic-verifier/data
 
-    # 下载文件
-    gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/dataa/cysic-verifier.db
+    if gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db; then
+        sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
 
-    # 如果下载是以 root 用户身份进行的，更改文件所有权
-    sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/dataa/cysic-verifier.db
+        echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
 
-    echo "Download completed. File saved at /home/ubuntu/cysic-verifier/dataa/cysic-verifier.db"
+        # 重启 cysic-verifier
+        echo "Restarting cysic-verifier..."
+        pm2 restart cysic-verifier
 
-    # 重启 cysic-verifier
-    echo "Restarting cysic-verifier..."
-    pm2 restart cysic-verifier
-
-    echo "Process completed."
-}
-    echo "Process completed."
+        echo "Process completed."
     else
         echo "Download failed. Restarting cysic-verifier without changes..."
         pm2 restart cysic-verifier
@@ -345,7 +359,7 @@ while true; do
     read -p "${msgs[1]}" choice
     case $choice in
         1) change_language ;;
-        2) install_and_configure_verifier ;;  
+        2) install_and_configure_verifier ;;  # 合并后的新函数
         3) set_reward_address ;;
         4) start_verifier ;;
         5) manage_verifier_pm2 ;;
@@ -354,7 +368,6 @@ while true; do
         8) uninstall_verifier ;;
         9) exit 0 ;;
         10) configure_swap ;; 
-        11) download_and_replace_file ;;  
         *) echo "${msgs[2]}" ;;
     esac
     echo
