@@ -7,11 +7,9 @@ function check_and_set_permissions() {
         chmod +x "$0"
     fi
     
-    if [ ! -d ~/cysic-verifier ]; then
-        mkdir -p ~/cysic-verifier
-        echo "创建了 cysic-verifier 文件夹。"
+    if [ -d ~/cysic-verifier ]; then
+        chmod 755 ~/cysic-verifier
     fi
-    chmod 755 ~/cysic-verifier
     
     if [ -f ~/cysic-verifier/verifier ]; then
         chmod 755 ~/cysic-verifier/verifier
