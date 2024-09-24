@@ -32,6 +32,14 @@ msgs_en=(
     "Synchronizing block information（Only applicable for first-time node users）"
 )
 
+msgs_en+=(
+    "Choose download source:"
+    "1. Google Drive"
+    "2. Domestic source (China)"
+    "3. Return to main menu"
+    "Invalid choice. Please try again."
+)
+
 msgs_zh=(
     "选择语言："
     "请输入您的选择： "
@@ -63,6 +71,14 @@ msgs_zh=(
     "Swap 内存配置成功。"
     "同步区块信息（仅适用首次运行节点用户）"
 )
+msgs_zh+=(
+    "选择下载源："
+    "1. 谷歌云"
+    "2. 国内源"
+    "3. 返回主菜单"
+    "无效的选择。请重试。"
+)
+
 msgs_ko=(
     "언어 선택:"
     "선택을 입력하세요: "
@@ -93,7 +109,14 @@ msgs_ko=(
     "스왑 메모리 구성"
     "스왑 메모리가 성공적으로 구성되었습니다."
     "블록 정보 동기화（노드 최초 실행 사용자에게만 적용）"
+)
 
+msgs_ko+=(
+    "다운로드 소스 선택:"
+    "1. 구글 드라이브"
+    "2. 국내 소스 (중국)"
+    "3. 메인 메뉴로 돌아가기"
+    "잘못된 선택입니다. 다시 시도해주세요."
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -353,6 +376,92 @@ download_and_replace_file() {
 
     cd -
 }
+
+download_from_domestic_source() {
+    echo "Downloading from domestic source..."
+    
+    echo "Stopping cysic-verifier..."
+    pm2 stop cysic-verifier
+
+    mkdir -p /home/ubuntu/cysic-verifier/data
+
+    if python3 download_lanzou.py "https://wwor.lanzouw.com/iRuCu2arvqkh" "0000" "/home/ubuntu/cysic-verifier/data/cysic-verifier.db"; then
+        sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+
+        echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
+
+        # 重启 cysic-verifier
+        echo "Restarting cysic-verifier..."
+        pm2 restart cysic-verifier
+
+        echo "Process completed."
+    else
+        echo "Download failed. Restarting cysic-verifier without changes..."
+        pm2 restart cysic-verifier
+    fi
+}
+
+# 修改 download_and_replace_file 函数
+download_and_replace_file() {
+    while true; do
+        echo "${msgs[29]}"  # "Choose download source:"
+        echo "${msgs[30]}"  # "1. Google Drive"
+        echo "${msgs[31]}"  # "2. Domestic source (China)"
+        echo "${msgs[32]}"  # "3. Return to main menu"
+        
+        read -p "${msgs[1]}" download_choice
+        
+        case $download_choice in
+            1)
+                echo "${msgs[28]}"  # "Synchronizing block information (Only applicable for first-time node users)"
+                
+                echo "Stopping cysic-verifier..."
+                pm2 stop cysic-verifier
+
+                sudo apt update
+                sudo apt install -y python3-pip
+
+                pip3 install gdown
+
+                echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
+                source ~/.bashrc
+
+                mkdir -p /home/ubuntu/cysic-verifier/data
+
+                if gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db; then
+                    sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+
+                    echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
+
+                    # 重启 cysic-verifier
+                    echo "Restarting cysic-verifier..."
+                    pm2 restart cysic-verifier
+
+                    echo "Process completed."
+                else
+                    echo "Download failed. Restarting cysic-verifier without changes..."
+                    pm2 restart cysic-verifier
+                fi
+
+                rm -f /tmp/cookie
+
+                cd -
+                break
+                ;;
+            2)
+                download_from_domestic_source
+                break
+                ;;
+            3)
+                return
+                ;;
+            *)
+                echo "${msgs[33]}"  # "Invalid choice. Please try again."
+                ;;
+        esac
+    done
+}
+
 
 while true; do
     show_menu
