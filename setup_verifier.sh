@@ -313,15 +313,15 @@ download_and_replace_file() {
     source ~/.bashrc
 
     # 创建目标目录（如果不存在）
-    mkdir -p /home/ubuntu/cysic-verifier/data
+    mkdir -p /home/ubuntu/cysic-verifier/dataa
 
     # 下载文件
-    gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+    gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/dataa/cysic-verifier.db
 
     # 如果下载是以 root 用户身份进行的，更改文件所有权
-    sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+    sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/dataa/cysic-verifier.db
 
-    echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
+    echo "Download completed. File saved at /home/ubuntu/cysic-verifier/dataa/cysic-verifier.db"
 
     # 重启 cysic-verifier
     echo "Restarting cysic-verifier..."
