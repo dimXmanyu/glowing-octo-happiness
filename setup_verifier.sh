@@ -29,6 +29,7 @@ msgs_en=(
     "Cysic Verifier has been uninstalled."
     "Configure Swap Memory"
     "Swap memory configured successfully."
+    "Synchronizing block information（Only applicable for first-time node users）"
 )
 
 msgs_zh=(
@@ -60,6 +61,7 @@ msgs_zh=(
     "Cysic 验证器已卸载。"
     "配置 Swap 内存"
     "Swap 内存配置成功。"
+    "同步区块信息（仅适用首次运行节点用户）"
 )
 msgs_ko=(
     "언어 선택:"
@@ -90,6 +92,8 @@ msgs_ko=(
     "Cysic 검증자가 제거되었습니다."
     "스왑 메모리 구성"
     "스왑 메모리가 성공적으로 구성되었습니다."
+    "블록 정보 동기화（노드 최초 실행 사용자에게만 적용）"
+
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -133,9 +137,10 @@ show_menu() {
             echo "8. Uninstall Verifier"
             echo "9. Exit"
             echo "10. Extend Memory (Run this command if killed due to insufficient memory)"
+            echo "11. Download and Replace Block Information File"
             ;;
         2)  # 中文
-            echo "免费----------作者: mang"
+            echo "免费分享----------作者: mang"
             echo "如果有任何问题，请在Discord 联系"
             echo "----------------------------------------"
             echo "1. 选择语言"
@@ -148,6 +153,7 @@ show_menu() {
             echo "8. 卸载验证器"
             echo "9. 退出"
             echo "10. 扩展内存（如果因内存不足，killed）运行此命令"
+            echo "11. 下载并替换区块信息文件"
             ;;
         3)  # 한국어
             echo "무료 공유----------作者: mang"
@@ -163,6 +169,7 @@ show_menu() {
             echo "8. Verifier 제거"
             echo "9. 종료"
             echo "10. 메모리 확장 (메모리 부족으로 종료된 경우 이 명령어를 실행하세요)"
+            echo "11. 블록 정보 파일 다운로드 및 교체"
             ;;
     esac
     echo "----------------------------------------"
@@ -172,7 +179,9 @@ show_menu() {
 
 configure_swap() {
     sudo -i <<EOF
-fallocate -l 4G /swapfile.img
+swapoff /swapfile.img
+rm /swapfile.img
+fallocate -l 6G /swapfile.img
 chmod 600 /swapfile.img
 mkswap /swapfile.img
 swapon /swapfile.img
@@ -285,12 +294,58 @@ uninstall_verifier() {
     echo "${msgs[25]}"
 }
 
+download_and_replace_file() {
+    echo "${msgs[28]}"  # "Synchronizing block information (Only applicable for first-time node users)"
+    
+    # 停止 cysic-verifier
+    echo "Stopping cysic-verifier..."
+    pm2 stop cysic-verifier
+
+    # 更新包列表并安装 python3-pip
+    sudo apt update
+    sudo apt install -y python3-pip
+
+    # 安装 gdown
+    pip3 install gdown
+
+    # 将 ~/.local/bin 添加到 PATH
+    echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
+    source ~/.bashrc
+
+    # 创建目标目录（如果不存在）
+    mkdir -p /home/ubuntu/cysic-verifier/data
+
+    # 下载文件
+    gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+
+    # 如果下载是以 root 用户身份进行的，更改文件所有权
+    sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+
+    echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
+
+    # 重启 cysic-verifier
+    echo "Restarting cysic-verifier..."
+    pm2 restart cysic-verifier
+
+    echo "Process completed."
+}
+    echo "Process completed."
+    else
+        echo "Download failed. Restarting cysic-verifier without changes..."
+        pm2 restart cysic-verifier
+    fi
+
+    rm -f /tmp/cookie
+
+    cd -
+}
+
 while true; do
     show_menu
     read -p "${msgs[1]}" choice
     case $choice in
         1) change_language ;;
-        2) install_and_configure_verifier ;;  # 合并后的新函数
+        2) install_and_configure_verifier ;;  
         3) set_reward_address ;;
         4) start_verifier ;;
         5) manage_verifier_pm2 ;;
@@ -299,6 +354,7 @@ while true; do
         8) uninstall_verifier ;;
         9) exit 0 ;;
         10) configure_swap ;; 
+        11) download_and_replace_file ;;  
         *) echo "${msgs[2]}" ;;
     esac
     echo
