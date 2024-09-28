@@ -334,7 +334,7 @@ download_and_replace_file() {
 
     mkdir -p /home/ubuntu/cysic-verifier/data
 
-    if gdown https://drive.google.com/file/d/1k1DP_hCX7U8pDw6zj0ii1tJtnIGNTQHb/view -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db; then
+    if gdown https://drive.google.com/uc?id=1nS9viElSwdQY6JdH2Lra_QGZrhNSmBTQ -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db; then
         sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
 
         echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
