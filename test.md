@@ -334,24 +334,25 @@ download_and_replace_file() {
 
     mkdir -p /home/ubuntu/cysic-verifier/data
 
-    if gdown https://drive.google.com/uc?id=1k1DP_hCX7U8pDw6zj0ii1tJtnIGNTQHb -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db; then
-    sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
+    if gdown https://drive.google.com/file/d/1k1DP_hCX7U8pDw6zj0ii1tJtnIGNTQHb/view -O /home/ubuntu/cysic-verifier/data/cysic-verifier.db; then
+        sudo chown ubuntu:ubuntu /home/ubuntu/cysic-verifier/data/cysic-verifier.db
 
-    echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
+        echo "Download completed. File saved at /home/ubuntu/cysic-verifier/data/cysic-verifier.db"
 
-    # 重启 cysic-verifier
-    echo "Restarting cysic-verifier..."
-    pm2 restart cysic-verifier
+        # 重启 cysic-verifier
+        echo "Restarting cysic-verifier..."
+        pm2 restart cysic-verifier
 
-    echo "Process completed."
-else
-    echo "Download failed. Restarting cysic-verifier without changes..."
-    pm2 restart cysic-verifier
-fi
+        echo "Process completed."
+    else
+        echo "Download failed. Restarting cysic-verifier without changes..."
+        pm2 restart cysic-verifier
+    fi
 
-rm -f /tmp/cookie
+    rm -f /tmp/cookie
 
-cd -
+    cd -
+}
 
 while true; do
     show_menu
