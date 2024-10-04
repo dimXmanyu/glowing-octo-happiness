@@ -335,7 +335,7 @@ download_and_replace_file() {
     mkdir -p "$HOME/cysic-verifier/data"
 
     if gdown https://drive.google.com/uc?id=10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0 -O "$HOME/cysic-verifier/data/cysic-verifier.db"; then
-        sudo chown "$USER:$USER" "$HOME/cysic-verifier/data/cysic-verifier.db"
+        sudo chown "$(whoami):$(whoami)" "$HOME/cysic-verifier/data/cysic-verifier.db"
 
         echo "Download completed. File saved at $HOME/cysic-verifier/data/cysic-verifier.db"
 
