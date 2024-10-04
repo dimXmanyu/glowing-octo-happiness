@@ -327,14 +327,10 @@ download_and_replace_file() {
     sudo apt update
     sudo apt install -y python3-pip
 
-    pip3 install gdown
-
-    echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
-    source ~/.bashrc
-
+    # 直接使用 wget 下载
     TARGET_DIR="$HOME/cysic-verifier/data"
     FILE_PATH="$TARGET_DIR/cysic-verifier.db"
-    DOWNLOAD_URL="https://drive.google.com/uc?id=10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0"
+    DOWNLOAD_URL="https://drive.google.com/uc?export=download&id=10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0"
 
     mkdir -p "$TARGET_DIR"
 
@@ -343,7 +339,17 @@ download_and_replace_file() {
     echo "Target Directory: $TARGET_DIR"
     echo "File Path: $FILE_PATH"
 
-    if gdown "$DOWNLOAD_URL" -O "$FILE_PATH"; then
+    # 使用 wget 下载文件并处理确认
+    CONFIRM=$(wget --quiet --save-cookies cookies.txt --keep-session-cookies --no-check-certificate "$DOWNLOAD_URL" -O- | grep -o 'confirm=[^&]*' | cut -d'=' -f2)
+
+    if [ -n "$CONFIRM" ]; then
+        wget --load-cookies cookies.txt "https://drive.google.com/uc?export=download&confirm=$CONFIRM&id=10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0" -O "$FILE_PATH"
+    else
+        echo "No confirmation token found. Attempting direct download."
+        wget --no-check-certificate "$DOWNLOAD_URL" -O "$FILE_PATH"
+    fi
+
+    if [ -f "$FILE_PATH" ]; then
         echo "Download successful. Setting file permissions..."
         sudo chown "$(whoami):$(whoami)" "$FILE_PATH"
 
@@ -359,7 +365,7 @@ download_and_replace_file() {
         pm2 restart cysic-verifier
     fi
 
-    rm -f /tmp/cookie
+    rm -f cookies.txt
 
     cd -
 }
