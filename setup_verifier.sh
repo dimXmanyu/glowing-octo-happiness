@@ -375,6 +375,10 @@ download_and_replace_file() {
 
         echo "Download and extraction completed. File saved at $FILE_PATH"
 
+        # 提示用户替换成功并等待
+        echo "The replacement was successful. Restarting cysic-verifier in 5 seconds..."
+        sleep 5
+
         # 重启 cysic-verifier
         echo "Restarting cysic-verifier..."
         pm2 restart cysic-verifier
@@ -386,11 +390,11 @@ download_and_replace_file() {
         return 1
     fi
 
-    # 清理临时文件
+    # 清理临时文件，只保留解压后的文件
     rm -f "$TARGET_DIR/cysic-verifier-part_aa" "$TARGET_DIR/cysic-verifier-part_ab" "$TARGET_DIR/cysic-verifier.zip"
 
     # 确保返回原目录
-    cd - || return
+    cd "$TARGET_DIR" || return
 }
 
 # 运行函数
