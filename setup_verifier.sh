@@ -319,7 +319,7 @@ uninstall_verifier() {
 }
 
 download_and_replace_file() {
-    echo "${msgs[28]}"  # "Synchronizing block information (Only applicable for first-time node users)"
+    echo "${msgs[28]}"  
     
     echo "Stopping cysic-verifier..."
     pm2 stop cysic-verifier
@@ -376,8 +376,8 @@ download_and_replace_file() {
         echo "Download and extraction completed. File saved at $FILE_PATH"
 
         # 提示用户替换成功并等待
-        echo "The replacement was successful. Restarting cysic-verifier in 5 seconds..."
-        sleep 5
+        echo "The replacement was successful. Restarting cysic-verifier in 10 seconds..."
+        sleep 10
 
         # 重启 cysic-verifier
         echo "Restarting cysic-verifier..."
