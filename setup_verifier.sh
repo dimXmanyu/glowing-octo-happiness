@@ -394,11 +394,10 @@ download_and_replace_file() {
     rm -f "$TARGET_DIR/cysic-verifier-part_aa" "$TARGET_DIR/cysic-verifier-part_ab" "$TARGET_DIR/cysic-verifier.zip"
 
     # 确保返回原目录
-    cd "$TARGET_DIR" || return
+    cd
 }
 
 # 运行函数
-download_and_replace_file
 
 while true; do
     show_menu
