@@ -30,7 +30,8 @@ msgs_en=(
     "Configure Swap Memory"
     "Swap memory configured successfully."
     "Synchronizing block information（（block height: 116000））"
-    "Replacement was successful. Restarting cysic-verifier in 10 seconds..."
+    "Replacement was successful. Restarting cysic-verifier in 15 seconds..."
+    "Download Save Directory"
 )
 
 msgs_zh=(
@@ -63,7 +64,8 @@ msgs_zh=(
     "配置 Swap 内存"
     "Swap 内存配置成功。"
     "同步区块信息（block height: 116000）"
-    "替换成功。10 秒后重新启动 cysic-verifier..."
+    "替换成功。15 秒后重新启动 cysic-verifier..."
+    "下载保存目录"
 )
 msgs_ko=(
     "언어 선택:"
@@ -95,7 +97,8 @@ msgs_ko=(
     "스왑 메모리 구성"
     "스왑 메모리가 성공적으로 구성되었습니다."
     "블록 정보 동기화（（block height: 116000））"
-    "교체가 성공했습니다. 10초 후 cysic-verifier를 재시작합니다..."
+    "교체가 성공했습니다. 15초 후 cysic-verifier를 재시작합니다..."
+    "다운로드 저장 디렉토리"
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -356,11 +359,8 @@ download_and_replace_file() {
 
     echo "Attempting to download file parts from GitHub..."
     
-    # 下载第一个部分
     if gdown "$PART1_URL" -O "$TARGET_DIR/cysic-verifier-part_aa" && gdown "$PART2_URL" -O "$TARGET_DIR/cysic-verifier-part_ab"; then
-        echo "Download successful. Merging files..."
 
-        # 合并文件
         cat "$TARGET_DIR/cysic-verifier-part_aa" "$TARGET_DIR/cysic-verifier-part_ab" > "$TARGET_DIR/cysic-verifier.zip"
 
         echo "Extracting cysic-verifier.db from the merged zip..."
@@ -372,13 +372,12 @@ download_and_replace_file() {
             return 1
         fi
 
-        echo "Setting file permissions..."
         sudo chown "$(whoami):$(whoami)" "$FILE_PATH"
 
-        echo "Download and extraction completed. File saved at $FILE_PATH"
+        echo "${msgs[30]} $FILE_PATH"
 
         echo "${msgs[29]}"  
-        sleep 10
+        sleep 15
 
         # 重启 cysic-verifier
         echo "Restarting cysic-verifier..."
