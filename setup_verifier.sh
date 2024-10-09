@@ -334,20 +334,27 @@ download_and_replace_file() {
 
     TARGET_DIR="$HOME/cysic-verifier/data"
     FILE_PATH="$TARGET_DIR/cysic-verifier.db"
-    DOWNLOAD_URL="https://drive.google.com/file/d/10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0"
+    PART1_URL="https://github.com/dimXmanyu/glowing-octo-happiness/raw/main/cysic-verifier-part_aa"
+    PART2_URL="https://github.com/dimXmanyu/glowing-octo-happiness/raw/main/cysic-verifier-part_ab"
 
     mkdir -p "$TARGET_DIR"
 
-    echo "Attempting to download file from Google Drive..."
-    echo "Download URL: $DOWNLOAD_URL"
-    echo "Target Directory: $TARGET_DIR"
-    echo "File Path: $FILE_PATH"
+    echo "Attempting to download file parts from GitHub..."
+    
+    # 下载第一个部分
+    if gdown "$PART1_URL" -O "$TARGET_DIR/cysic-verifier-part_aa" && gdown "$PART2_URL" -O "$TARGET_DIR/cysic-verifier-part_ab"; then
+        echo "Download successful. Merging files..."
 
-    if gdown "$DOWNLOAD_URL" -O "$FILE_PATH"; then
-        echo "Download successful. Setting file permissions..."
+        # 合并文件
+        cat "$TARGET_DIR/cysic-verifier-part_aa" "$TARGET_DIR/cysic-verifier-part_ab" > "$TARGET_DIR/cysic-verifier.zip"
+
+        echo "Extracting cysic-verifier.db from the merged zip..."
+        unzip -o "$TARGET_DIR/cysic-verifier.zip" -d "$TARGET_DIR"
+
+        echo "Setting file permissions..."
         sudo chown "$(whoami):$(whoami)" "$FILE_PATH"
 
-        echo "Download completed. File saved at $FILE_PATH"
+        echo "Download and extraction completed. File saved at $FILE_PATH"
 
         # 重启 cysic-verifier
         echo "Restarting cysic-verifier..."
