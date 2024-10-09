@@ -377,7 +377,7 @@ download_and_replace_file() {
 
         echo "Download and extraction completed. File saved at $FILE_PATH"
 
-        echo "${msgs[30]}"  
+        echo "${msgs[29]}"  
         sleep 10
 
         # 重启 cysic-verifier
