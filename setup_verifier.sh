@@ -29,7 +29,8 @@ msgs_en=(
     "Cysic Verifier has been uninstalled."
     "Configure Swap Memory"
     "Swap memory configured successfully."
-    "Synchronizing block information（Only applicable for first-time node users）"
+    "Synchronizing block information（（block height: 116000））"
+    "Replacement was successful. Restarting cysic-verifier in 10 seconds..."
 )
 
 msgs_zh=(
@@ -61,7 +62,8 @@ msgs_zh=(
     "Cysic 验证器已卸载。"
     "配置 Swap 内存"
     "Swap 内存配置成功。"
-    "同步区块信息（仅适用首次运行节点用户）"
+    "同步区块信息（block height: 116000）"
+    "替换成功。10 秒后重新启动 cysic-verifier..."
 )
 msgs_ko=(
     "언어 선택:"
@@ -92,8 +94,8 @@ msgs_ko=(
     "Cysic 검증자가 제거되었습니다."
     "스왑 메모리 구성"
     "스왑 메모리가 성공적으로 구성되었습니다."
-    "블록 정보 동기화（노드 최초 실행 사용자에게만 적용）"
-
+    "블록 정보 동기화（（block height: 116000））"
+    "교체가 성공했습니다. 10초 후 cysic-verifier를 재시작합니다..."
 )
 
 LANG_OPTIONS=("English" "中文" "한국어")
@@ -375,8 +377,7 @@ download_and_replace_file() {
 
         echo "Download and extraction completed. File saved at $FILE_PATH"
 
-        # 提示用户替换成功并等待
-        echo "The replacement was successful. Restarting cysic-verifier in 10 seconds..."
+        echo "${msgs[30]}"  
         sleep 10
 
         # 重启 cysic-verifier
