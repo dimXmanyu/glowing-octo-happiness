@@ -327,21 +327,23 @@ download_and_replace_file() {
     sudo apt update
     sudo apt install -y python3-pip
 
-    # 安装 gdown
     pip3 install gdown
+
+    echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
+    source ~/.bashrc
 
     TARGET_DIR="$HOME/cysic-verifier/data"
     FILE_PATH="$TARGET_DIR/cysic-verifier.db"
-    FILE_ID="10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0"
+    DOWNLOAD_URL="https://drive.google.com/file/d/10IzB5-N8CpR9bUwBA1SXqXsOV40IHtY0"
 
     mkdir -p "$TARGET_DIR"
 
     echo "Attempting to download file from Google Drive..."
-    echo "File ID: $FILE_ID"
+    echo "Download URL: $DOWNLOAD_URL"
     echo "Target Directory: $TARGET_DIR"
     echo "File Path: $FILE_PATH"
 
-    if gdown "https://drive.google.com/uc?id=${FILE_ID}" -O "$FILE_PATH"; then
+    if gdown "$DOWNLOAD_URL" -O "$FILE_PATH"; then
         echo "Download successful. Setting file permissions..."
         sudo chown "$(whoami):$(whoami)" "$FILE_PATH"
 
@@ -356,6 +358,8 @@ download_and_replace_file() {
         echo "Download failed. Restarting cysic-verifier without changes..."
         pm2 restart cysic-verifier
     fi
+
+    rm -f /tmp/cookie
 
     cd -
 }
