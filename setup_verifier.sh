@@ -373,9 +373,11 @@ download_and_replace_file() {
         fi
 
         sudo chown "$(whoami):$(whoami)" "$FILE_PATH"
-
+        echo "  ---------------------------------"
+        echo "  ---------------------------------"
+        echo "  ---------------------------------"
         echo "${msgs[30]} $FILE_PATH"
-
+        echo "                    "
         echo "${msgs[29]}"  
         sleep 15
 
