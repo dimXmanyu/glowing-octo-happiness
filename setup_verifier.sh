@@ -324,13 +324,26 @@ download_and_replace_file() {
     echo "Stopping cysic-verifier..."
     pm2 stop cysic-verifier
 
+    # 更新软件包列表
     sudo apt update
-    sudo apt install -y python3-pip
 
-    pip3 install gdown
+    # 检查并安装 python3-pip
+    if ! command -v pip3 &> /dev/null; then
+        echo "Installing python3-pip..."
+        sudo apt install -y python3-pip
+    else
+        echo "python3-pip is already installed."
+    fi
 
-    echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
-    source ~/.bashrc
+    # 检查并安装 gdown
+    if ! command -v gdown &> /dev/null; then
+        echo "Installing gdown..."
+        pip3 install --user gdown
+        echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
+        source ~/.bashrc
+    else
+        echo "gdown is already installed."
+    fi
 
     TARGET_DIR="$HOME/cysic-verifier/data"
     FILE_PATH="$TARGET_DIR/cysic-verifier.db"
@@ -349,7 +362,13 @@ download_and_replace_file() {
         cat "$TARGET_DIR/cysic-verifier-part_aa" "$TARGET_DIR/cysic-verifier-part_ab" > "$TARGET_DIR/cysic-verifier.zip"
 
         echo "Extracting cysic-verifier.db from the merged zip..."
-        unzip -o "$TARGET_DIR/cysic-verifier.zip" -d "$TARGET_DIR"
+        if unzip -o "$TARGET_DIR/cysic-verifier.zip" -d "$TARGET_DIR"; then
+            echo "Extraction completed."
+        else
+            echo "Extraction failed. Please check the zip file."
+            pm2 restart cysic-verifier
+            return 1
+        fi
 
         echo "Setting file permissions..."
         sudo chown "$(whoami):$(whoami)" "$FILE_PATH"
@@ -364,12 +383,18 @@ download_and_replace_file() {
     else
         echo "Download failed. Restarting cysic-verifier without changes..."
         pm2 restart cysic-verifier
+        return 1
     fi
 
-    rm -f /tmp/cookie
+    # 清理临时文件
+    rm -f "$TARGET_DIR/cysic-verifier-part_aa" "$TARGET_DIR/cysic-verifier-part_ab" "$TARGET_DIR/cysic-verifier.zip"
 
-    cd -
+    # 确保返回原目录
+    cd - || return
 }
+
+# 运行函数
+download_and_replace_file
 
 while true; do
     show_menu
