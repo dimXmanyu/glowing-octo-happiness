@@ -186,7 +186,7 @@ configure_swap() {
     sudo -i <<EOF
 swapoff /swapfile.img
 rm /swapfile.img
-fallocate -l 6G /swapfile.img
+fallocate -l 8G /swapfile.img
 chmod 600 /swapfile.img
 mkswap /swapfile.img
 swapon /swapfile.img
