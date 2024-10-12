@@ -93,7 +93,7 @@ generate_key() {
 
     URL="https://github.com/hemilabs/heminetwork/releases/download/v0.4.4/heminetwork_v0.4.4_linux_amd64.tar.gz"
     FILENAME="heminetwork_v0.4.4_linux_amd64.tar.gz"
-    DIRECTORY="$HOME/heminetwork_v0.4.4_linux_amd64"
+    DIRECTORY="/root/heminetwork_v0.4.4_linux_amd64"
     OUTPUT_FILE="$HOME/popm-address.json"
 
     echo "正在下载 $FILENAME..."
@@ -107,7 +107,7 @@ generate_key() {
     fi
 
     echo "正在解压 $FILENAME..."
-    tar -xzf "$FILENAME" -C "$HOME"
+    tar -xzf "$FILENAME" -C /root
 
     if [ $? -eq 0 ]; then
         echo "解压完成。"
@@ -179,25 +179,20 @@ run_node() {
 # 升级版本函数
 upgrade_version() {
     URL="https://github.com/hemilabs/heminetwork/releases/download/v0.4.5/heminetwork_v0.4.4_linux_amd64.tar.gz"
-    FILENAME="heminetwork_v0.4.4_linux_amd64.tar.gz"
-    DIRECTORY="$HOME/heminetwork_v0.4.4_linux_amd64"
+    FILENAME="heminetwork_v0.4.3_linux_amd64.tar.gz"
+    DIRECTORY="/root/heminetwork_v0.4.3_linux_amd64"
     ADDRESS_FILE="$HOME/popm-address.json"
     BACKUP_FILE="$HOME/popm-address.json.bak"
 
     echo "备份 address.json 文件..."
     if [ -f "$ADDRESS_FILE" ]; then
         cp "$ADDRESS_FILE" "$BACKUP_FILE"
-        if [ $? -eq 0 ]; then
-            echo "备份成功，文件已保存为 $BACKUP_FILE。"
-        else
-            echo "备份失败。"
-            exit 1
-        fi
+        echo "备份完成：$BACKUP_FILE"
     else
-        echo "未找到 $ADDRESS_FILE 文件，跳过备份。"
+        echo "未找到 address.json 文件，无法备份。"
     fi
 
-    echo "正在下载新版本..."
+    echo "正在下载新版本 $FILENAME..."
     wget -q "$URL" -O "$FILENAME"
 
     if [ $? -eq 0 ]; then
@@ -207,8 +202,11 @@ upgrade_version() {
         exit 1
     fi
 
+    echo "删除旧版本目录..."
+    rm -rf "$DIRECTORY"
+
     echo "正在解压新版本..."
-    tar -xzf "$FILENAME" -C "$HOME"
+    tar -xzf "$FILENAME" -C /root
 
     if [ $? -eq 0 ]; then
         echo "解压完成。"
@@ -220,10 +218,46 @@ upgrade_version() {
     echo "删除压缩文件..."
     rm -rf "$FILENAME"
 
-    echo "重启节点..."
-    pm2 restart popmd
+    # 恢复 address.json 文件
+    if [ -f "$BACKUP_FILE" ]; then
+        cp "$BACKUP_FILE" "$ADDRESS_FILE"
+        echo "恢复 address.json 文件：$ADDRESS_FILE"
+    else
+        echo "备份文件不存在，无法恢复。"
+    fi
 
-    echo "升级完成，节点已重启。"
+    echo "版本升级完成！"
+    echo "按任意键返回主菜单栏..."
+    read -n 1 -s
+}
+
+# 备份 address.json 函数
+backup_address_json() {
+    ADDRESS_FILE="$HOME/popm-address.json"
+    BACKUP_FILE="$HOME/popm-address.json.bak"
+
+    echo "备份 address.json 文件..."
+    if [ -f "$ADDRESS_FILE" ]; then
+        cp "$ADDRESS_FILE" "$BACKUP_FILE"
+        echo "备份完成：$BACKUP_FILE"
+    else
+        echo "未找到 address.json 文件，无法备份。"
+    fi
+
+    echo "按任意键返回主菜单栏..."
+    read -n 1 -s
+}
+
+# 查看日志函数
+view_logs() {
+    DIRECTORY="heminetwork_v0.4.4_linux_amd64"
+
+    echo "进入目录 $DIRECTORY..."
+    cd "$HOME/$DIRECTORY" || { echo "目录 $DIRECTORY 不存在。"; exit 1; }
+
+    echo "查看 pm2 日志..."
+    pm2 logs popmd
+
     echo "按任意键返回主菜单栏..."
     read -n 1 -s
 }
@@ -232,19 +266,41 @@ upgrade_version() {
 main_menu() {
     while true; do
         clear
-        echo "欢迎使用 Heminetwork 管理工具"
-        echo "1. 生成密钥"
-        echo "2. 运行节点"
-        echo "3. 升级版本"
-        echo "4. 退出"
-        read -p "请选择操作: " choice
-        
+        echo "脚本由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，请勿相信收费"
+        echo "如有问题，可联系推特，仅此只有一个号"
+        echo "================================================================"
+        echo "退出脚本，请按键盘 ctrl + C 退出即可"
+        echo "请选择要执行的操作:"
+        echo "1) 生成密钥"
+        echo "2) 运行节点"
+        echo "3) 升级版本(0.4.4)"
+        echo "4) 备份 address.json"
+        echo "5) 查看日志"
+        echo "6) 退出"
+        read -p "选择一个操作: " choice
+
         case $choice in
-            1) generate_key ;;
-            2) run_node ;;
-            3) upgrade_version ;;
-            4) echo "退出程序。"; exit 0 ;;
-            *) echo "无效的选择，请重试。" ;;
+            1)
+                generate_key
+                ;;
+            2)
+                run_node
+                ;;
+            3)
+                upgrade_version
+                ;;
+            4)
+                backup_address_json
+                ;;
+            5)
+                view_logs
+                ;;
+            6)
+                exit 0
+                ;;
+            *)
+                echo "无效的选项，请重新选择。"
+                ;;
         esac
     done
 }
