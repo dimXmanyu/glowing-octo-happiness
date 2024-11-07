@@ -64,34 +64,67 @@ echo
 
 # 创建 docker-compose.yaml 文件
 cat <<EOF > docker-compose.yaml
----
+version: '3.7'
+
 services:
   chromium:
-    image: lscr.io/linuxserver/chromium:latest
+    build: .
     container_name: chromium
-    security_opt:
-      - seccomp:unconfined #optional
     environment:
       - CUSTOM_USER=$CUSTOM_USER
       - PASSWORD=$PASSWORD
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - CHROME_CLI=https://chromewebstore.google.com/detail/dawn-validator-chrome-ext/fpdkjdnhkakefebpekbdhillbhonfjjp #optional
       - SOCKS_PROXY=socks5://$PROXY_USER:$PROXY_PASS@$PROXY_IP
     volumes:
       - /root/chromium/config:/config
     ports:
-      - 3010:3000   #Change 3010 to your favorite port if needed
-      - 3011:3001   #Change 3011 to your favorite port if needed
+      - 3010:3000   # Change 3010 to your favorite port if needed
+      - 3011:3001   # Change 3011 to your favorite port if needed
     shm_size: "1gb"
     restart: unless-stopped
 EOF
 
 echo "docker-compose.yaml 文件已创建，内容已导入。"
 
-# 启动 Docker Compose
-docker compose up -d
+# 创建 Dockerfile
+cat <<EOF > Dockerfile
+# 使用官方的 Chromium 镜像作为基础镜像
+FROM lscr.io/linuxserver/chromium:latest
+
+# 安装必要的软件包
+RUN apt-get update && apt-get install -y \
+    libnss3-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# 添加启动脚本
+COPY start-chromium.sh /usr/local/bin/start-chromium.sh
+RUN chmod +x /usr/local/bin/start-chromium.sh
+
+# 设置启动命令
+CMD ["start-chromium.sh"]
+EOF
+
+echo "Dockerfile 已创建。"
+
+# 创建 start-chromium.sh 脚本
+cat <<EOF > start-chromium.sh
+#!/bin/bash
+
+# 从环境变量获取代理设置
+SOCKS_PROXY="${SOCKS_PROXY:-socks5://user:password@proxy_ip:proxy_port}"
+
+# 启动 Chrome 并配置代理
+chromium-browser --proxy-server="\$SOCKS_PROXY" --no-sandbox --disable-dev-shm-usage
+EOF
+
+chmod +x start-chromium.sh
+
+echo "start-chromium.sh 脚本已创建并赋予执行权限。"
+
+# 构建和启动 Docker Compose
+docker compose up -d --build
 echo "Docker Compose 已启动。"
 
 echo "部署完成，请打开浏览器操作。"
