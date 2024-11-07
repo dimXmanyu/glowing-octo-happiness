@@ -57,6 +57,10 @@ echo "已进入 chromium 目录"
 read -p "请输入 CUSTOM_USER: " CUSTOM_USER
 read -sp "请输入 PASSWORD: " PASSWORD
 echo
+read -p "请输入代理IP（格式为 IP:PORT）: " PROXY_IP
+read -p "请输入代理用户名: " PROXY_USER
+read -sp "请输入代理密码: " PROXY_PASS
+echo
 
 # 创建 docker-compose.yaml 文件
 cat <<EOF > docker-compose.yaml
@@ -74,6 +78,7 @@ services:
       - PGID=1000
       - TZ=Europe/London
       - CHROME_CLI=https://chromewebstore.google.com/detail/dawn-validator-chrome-ext/fpdkjdnhkakefebpekbdhillbhonfjjp #optional
+      - SOCKS_PROXY=socks5://$PROXY_USER:$PROXY_PASS@$PROXY_IP
     volumes:
       - /root/chromium/config:/config
     ports:
