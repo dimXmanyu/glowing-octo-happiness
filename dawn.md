@@ -6,7 +6,6 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# 脚本保存路径
 SCRIPT_PATH="$HOME/Linux.sh"
 
 # 检查 Docker 是否已安装
