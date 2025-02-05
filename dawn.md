@@ -14,8 +14,7 @@ if ! command -v docker &> /dev/null; then
     
     # 更新系统
     sudo apt update -y && sudo apt upgrade -y
-    
-    # 移除旧版本
+
     for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do
         sudo apt-get remove -y $pkg
     done
