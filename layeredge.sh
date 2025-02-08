@@ -8,23 +8,16 @@ function main_menu() {
     while true; do
         clear
         echo "================================================================"
-        echo "LayerEdge 节点部署脚本"
-        echo "================================================================"
+        echo "退出脚本，请按键盘 ctrl + C 退出即可"
         echo "请选择要执行的操作:"
-        echo "1. 部署 LayerEdge 节点"
-        echo "2. 查看节点状态"
-        echo "3. 重启节点"
-        echo "4. 停止节点"
-        echo "5. 退出脚本"
+        echo "1. 部署 layeredge 节点"
+        echo "2. 退出脚本"
         echo "================================================================"
-        read -p "请输入选择 (1-5): " choice
+        read -p "请输入选择 (1/2): " choice
 
         case $choice in
             1)  deploy_layeredge_node ;;
-            2)  check_node_status ;;
-            3)  restart_node ;;
-            4)  stop_node ;;
-            5)  exit ;;
+            2)  exit ;;
             *)  echo "无效选择，请重新输入！"; sleep 2 ;;
         esac
     done
@@ -47,6 +40,9 @@ function install_dependencies() {
             echo "无法自动安装 git，请手动安装 git 后重试。"
             exit 1
         fi
+        echo "git 安装完成！"
+    else
+        echo "git 已安装。"
     fi
 
     # 检测并安装 node 和 npm
@@ -64,48 +60,21 @@ function install_dependencies() {
             echo "无法自动安装 node 和 npm，请手动安装 node 和 npm 后重试。"
             exit 1
         fi
+        echo "node 和 npm 安装完成！"
+    else
+        echo "node 和 npm 已安装。"
     fi
 
     # 安装 PM2
     if ! command -v pm2 &> /dev/null; then
         echo "正在安装 PM2..."
         npm install -g pm2
+        echo "PM2 安装完成！"
+    else
+        echo "PM2 已安装。"
     fi
 
     echo "环境依赖检测完成！"
-}
-
-# 检查节点状态
-function check_node_status() {
-    if command -v pm2 &> /dev/null; then
-        pm2 status layeredge
-        read -n 1 -s -r -p "按任意键返回主菜单..."
-    else
-        echo "未安装 PM2，请先部署节点"
-        sleep 2
-    fi
-}
-
-# 重启节点
-function restart_node() {
-    if pm2 list | grep -q "layeredge"; then
-        pm2 restart layeredge
-        echo "节点已重启"
-    else
-        echo "节点未运行，无需重启"
-    fi
-    sleep 2
-}
-
-# 停止节点
-function stop_node() {
-    if pm2 list | grep -q "layeredge"; then
-        pm2 stop layeredge
-        echo "节点已停止"
-    else
-        echo "节点未运行"
-    fi
-    sleep 2
 }
 
 # 部署 layeredge 节点
@@ -113,62 +82,43 @@ function deploy_layeredge_node() {
     # 检测并安装环境依赖
     install_dependencies
 
-    # 创建工作目录
-    cd $HOME
-
-    # 检查目标目录是否存在
-    if [ -d "LayerEdge" ]; then
-        echo "检测到 LayerEdge 目录已存在。"
-        read -p "是否删除旧目录并重新拉取仓库？(y/n) " delete_old
-        if [[ "$delete_old" =~ ^[Yy]$ ]]; then
-            echo "正在删除旧目录..."
-            rm -rf LayerEdge
-            echo "旧目录已删除。"
-        else
-            echo "使用现有目录继续运行..."
-            cd LayerEdge
-            
-            # 输入新的钱包信息
-            read -p "请输入钱包地址: " wallet_address
-            read -p "请输入私钥: " private_key
-            echo "$wallet_address,$private_key" > ./wallets.txt
-            
-            pm2 delete layeredge 2>/dev/null
-            npm install
-            pm2 start npm --name "layeredge" -- start
-            echo "节点已重新启动！"
-            read -n 1 -s -r -p "按任意键返回主菜单..."
-            return
-        fi
-    fi
-
     # 拉取仓库
-    if git clone https://github.com/sdohuajia/LayerEdge.git; then
+    echo "正在拉取仓库..."
+    rm -rf ~/LayerEdge
+    if git clone https://github.com/sdohuajia/LayerEdge.git ~/LayerEdge; then
         echo "仓库拉取成功！"
     else
         echo "仓库拉取失败，请检查网络连接或仓库地址。"
         read -n 1 -s -r -p "按任意键返回主菜单..."
+        main_menu
         return
     fi
 
-    # 进入项目目录
-    cd LayerEdge || {
-        echo "进入目录失败，请检查是否成功拉取仓库。"
-        read -n 1 -s -r -p "按任意键返回主菜单..."
-        return
-    }
+    # 输入钱包信息
+    cd ~/LayerEdge || exit
+    > wallets.txt
+    echo "请输入钱包信息，格式必须为：钱包地址,私钥"
+    echo "每次输入一个钱包，直接按回车结束输入："
+    while true; do
+        read -p "钱包地址：" wallet_address
+        if [ -z "$wallet_address" ]; then
+            if [ -s "wallets.txt" ]; then
+                break
+            else
+                echo "钱包地址不能为空，请重新输入！"
+                continue
+            fi
+        fi
 
-    # 输入钱包信息并保存
-    read -p "请输入钱包地址: " wallet_address
-    read -p "请输入私钥: " private_key
-    echo "$wallet_address,$private_key" > ./wallets.txt
-    
-    # 验证文件是否创建成功
-    if [ ! -f "./wallets.txt" ]; then
-        echo "钱包配置文件创建失败！"
-        read -n 1 -s -r -p "按任意键返回主菜单..."
-        return
-    fi
+        read -p "私钥：" private_key
+        if [ -z "$private_key" ]; then
+            echo "私钥不能为空，请重新输入！"
+            continue
+        fi
+
+        echo "$wallet_address,$private_key" >> wallets.txt
+        echo "钱包信息已保存。"
+    done
 
     # 安装依赖
     echo "正在使用 npm 安装依赖..."
@@ -177,23 +127,38 @@ function deploy_layeredge_node() {
     else
         echo "依赖安装失败，请检查网络连接或 npm 配置。"
         read -n 1 -s -r -p "按任意键返回主菜单..."
+        main_menu
         return
     fi
 
-    # 先确保没有同名的 PM2 进程
-    pm2 delete layeredge 2>/dev/null
+    # 创建 PM2 配置文件
+    cat > ecosystem.config.js << EOL
+module.exports = {
+  apps: [{
+    name: "layeredge",
+    script: "npm",
+    args: "start",
+    cwd: "${HOME}/LayerEdge",
+    watch: false,
+    cron_restart: "*/1 * * * *"
+  }]
+}
+EOL
 
     # 使用 PM2 启动项目
     echo "正在使用 PM2 启动项目..."
-    pm2 start npm --name "layeredge" -- start
+    pm2 delete layeredge 2>/dev/null
+    pm2 start ecosystem.config.js
+    pm2 save
 
     echo "项目已成功启动！"
-    echo "可以使用以下命令查看运行状态："
-    echo "pm2 status"
-    echo "查看日志："
+    echo "你可以使用以下命令查看运行状态："
     echo "pm2 logs layeredge"
+    echo "pm2 status"
 
+    # 提示用户按任意键返回主菜单
     read -n 1 -s -r -p "按任意键返回主菜单..."
+    main_menu
 }
 
 # 调用主菜单函数
