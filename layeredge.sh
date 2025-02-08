@@ -102,18 +102,21 @@ function check_node_status() {
 
 # 重启节点
 function restart_node() {
+    echo "开始循环重启节点..."
+    echo "按 Ctrl+C 可以停止循环重启"
+    
     while true; do
         if pm2 list | grep -q "layeredge"; then
-            echo "正在重启节点..."
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - 正在重启节点..."
             cd ~/LayerEdge && pm2 restart layeredge
-            echo "节点已重启成功！"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - 节点已重启成功！"
         else
-            echo "节点未运行，正在重新启动..."
-            cd ~/LayerEdge && pm2 start npm --name "layeredge" -- start
-            echo "节点已启动成功！"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - 节点未运行，正在启动..."
+            cd ~/LayerEdge && pm2 start "npm start" --name "layeredge"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - 节点已启动成功！"
         fi
         
-        echo "等待1分钟后进行下一次重启..."
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - 等待1分钟后进行下一次重启..."
         sleep 60
     done
 }
@@ -153,7 +156,7 @@ function deploy_layeredge_node() {
             cd LayerEdge
             pm2 delete layeredge 2>/dev/null
             npm install
-            pm2 start npm --name "layeredge" -- start
+            pm2 start "npm start" --name "layeredge"
             echo "节点已重新启动！"
             read -n 1 -s -r -p "按任意键返回主菜单..."
             return
@@ -207,7 +210,7 @@ function deploy_layeredge_node() {
     pm2 delete layeredge 2>/dev/null
     # 使用 PM2 启动项目
     echo "正在使用 PM2 启动项目..."
-    pm2 start npm --name "layeredge" -- start
+    pm2 start "npm start" --name "layeredge"
 
     echo "项目已成功启动！"
     echo "可以使用以下命令查看运行状态："
