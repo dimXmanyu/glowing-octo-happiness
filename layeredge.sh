@@ -21,12 +21,19 @@ install_dependencies() {
     npm install axios ethers figlet
 }
 
-# 提示配置钱包
+# 配置钱包
 configure_wallet() {
-    echo "请配置你的钱包:"
-    echo "请编辑 data.txt 文件，添加你的钱包私钥（每行一个）"
-    echo "按回车键继续..."
-    read
+    echo "=== 钱包配置 ==="
+    echo "请输入钱包私钥："
+    read -r private_key
+    
+    # 确保在项目根目录
+    cd Galkurta-Ledge
+    
+    # 将私钥写入 data.txt
+    echo "$private_key" > data.txt
+    
+    echo "钱包配置完成！私钥已保存到 data.txt"
 }
 
 # 使用 PM2 启动项目
