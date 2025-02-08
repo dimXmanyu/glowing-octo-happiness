@@ -127,6 +127,12 @@ function deploy_layeredge_node() {
         else
             echo "使用现有目录继续运行..."
             cd LayerEdge
+            
+            # 输入新的钱包信息
+            read -p "请输入钱包地址: " wallet_address
+            read -p "请输入私钥: " private_key
+            echo "$wallet_address,$private_key" > ./wallets.txt
+            
             pm2 delete layeredge 2>/dev/null
             npm install
             pm2 start npm --name "layeredge" -- start
@@ -151,6 +157,18 @@ function deploy_layeredge_node() {
         read -n 1 -s -r -p "按任意键返回主菜单..."
         return
     }
+
+    # 输入钱包信息并保存
+    read -p "请输入钱包地址: " wallet_address
+    read -p "请输入私钥: " private_key
+    echo "$wallet_address,$private_key" > ./wallets.txt
+    
+    # 验证文件是否创建成功
+    if [ ! -f "./wallets.txt" ]; then
+        echo "钱包配置文件创建失败！"
+        read -n 1 -s -r -p "按任意键返回主菜单..."
+        return
+    fi
 
     # 安装依赖
     echo "正在使用 npm 安装依赖..."
