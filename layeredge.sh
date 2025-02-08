@@ -8,7 +8,6 @@ function main_menu() {
     while true; do
         clear
         echo "================================================================"
-        echo "退出脚本，请按键盘 ctrl + C 退出即可"
         echo "请选择要执行的操作:"
         echo "1. 部署 layeredge 节点"
         echo "2. 退出脚本"
@@ -82,43 +81,79 @@ function deploy_layeredge_node() {
     # 检测并安装环境依赖
     install_dependencies
 
-    # 拉取仓库
-    echo "正在拉取仓库..."
-    rm -rf ~/LayerEdge
-    if git clone https://github.com/sdohuajia/LayerEdge.git ~/LayerEdge; then
-        echo "仓库拉取成功！"
+    # 检查目录是否存在
+    if [ ! -d "$HOME/LayerEdge" ]; then
+        echo "正在拉取仓库..."
+        if git clone https://github.com/sdohuajia/LayerEdge.git ~/LayerEdge; then
+            echo "仓库拉取成功！"
+        else
+            echo "仓库拉取失败，请检查网络连接或仓库地址。"
+            read -n 1 -s -r -p "按任意键返回主菜单..."
+            main_menu
+            return
+        fi
     else
-        echo "仓库拉取失败，请检查网络连接或仓库地址。"
-        read -n 1 -s -r -p "按任意键返回主菜单..."
-        main_menu
-        return
+        echo "检测到已存在 LayerEdge 目录，跳过仓库拉取..."
     fi
 
-    # 输入钱包信息
+    # 进入项目目录
     cd ~/LayerEdge || exit
-    > wallets.txt
-    echo "请输入钱包信息，格式必须为：钱包地址,私钥"
-    echo "每次输入一个钱包，直接按回车结束输入："
-    while true; do
-        read -p "钱包地址：" wallet_address
-        if [ -z "$wallet_address" ]; then
-            if [ -s "wallets.txt" ]; then
-                break
-            else
-                echo "钱包地址不能为空，请重新输入！"
+
+    # 创建启动脚本
+    cat > start.js << EOL
+const { exec } = require('child_process');
+const path = require('path');
+
+function runScript() {
+    const npm = exec('npm start', {
+        cwd: process.cwd()
+    });
+
+    npm.stdout.on('data', (data) => {
+        console.log(data.toString());
+    });
+
+    npm.stderr.on('data', (data) => {
+        console.error(data.toString());
+    });
+
+    npm.on('close', (code) => {
+        console.log(\`进程退出，退出码: \${code}\`);
+        setTimeout(runScript, 60000); // 1分钟后重新启动
+    });
+}
+
+runScript();
+EOL
+
+    # 输入钱包信息
+    if [ ! -f "wallets.txt" ]; then
+        echo "请输入钱包信息，格式必须为：钱包地址,私钥"
+        echo "每次输入一个钱包，直接按回车结束输入："
+        > wallets.txt
+        while true; do
+            read -p "钱包地址：" wallet_address
+            if [ -z "$wallet_address" ]; then
+                if [ -s "wallets.txt" ]; then
+                    break
+                else
+                    echo "钱包地址不能为空，请重新输入！"
+                    continue
+                fi
+            fi
+
+            read -p "私钥：" private_key
+            if [ -z "$private_key" ]; then
+                echo "私钥不能为空，请重新输入！"
                 continue
             fi
-        fi
 
-        read -p "私钥：" private_key
-        if [ -z "$private_key" ]; then
-            echo "私钥不能为空，请重新输入！"
-            continue
-        fi
-
-        echo "$wallet_address,$private_key" >> wallets.txt
-        echo "钱包信息已保存。"
-    done
+            echo "$wallet_address,$private_key" >> wallets.txt
+            echo "钱包信息已保存。"
+        done
+    else
+        echo "检测到已存在钱包配置文件，跳过钱包配置..."
+    fi
 
     # 安装依赖
     echo "正在使用 npm 安装依赖..."
@@ -131,24 +166,10 @@ function deploy_layeredge_node() {
         return
     fi
 
-    # 创建 PM2 配置文件
-    cat > ecosystem.config.js << EOL
-module.exports = {
-  apps: [{
-    name: "layeredge",
-    script: "npm",
-    args: "start",
-    cwd: "${HOME}/LayerEdge",
-    watch: false,
-    cron_restart: "*/1 * * * *"
-  }]
-}
-EOL
-
     # 使用 PM2 启动项目
     echo "正在使用 PM2 启动项目..."
     pm2 delete layeredge 2>/dev/null
-    pm2 start ecosystem.config.js
+    pm2 start start.js --name layeredge
     pm2 save
 
     echo "项目已成功启动！"
