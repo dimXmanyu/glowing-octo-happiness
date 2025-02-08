@@ -12,7 +12,7 @@ function main_menu() {
         echo "================================================================"
         echo "请选择要执行的操作:"
         echo "1. 部署 LayerEdge 节点"
-        echo "2. 查看节点日志"
+        echo "2. 查看节点状态"
         echo "3. 重启节点"
         echo "4. 停止节点"
         echo "5. 退出脚本"
@@ -21,7 +21,7 @@ function main_menu() {
 
         case $choice in
             1)  deploy_layeredge_node ;;
-            2)  view_node_logs ;;
+            2)  check_node_status ;;
             3)  restart_node ;;
             4)  stop_node ;;
             5)  exit ;;
@@ -75,14 +75,13 @@ function install_dependencies() {
     echo "环境依赖检测完成！"
 }
 
-# 查看节点日志
-function view_node_logs() {
-    if pm2 list | grep -q "layeredge"; then
-        clear
-        echo "正在查看节点日志..."
-        pm2 logs layeredge
+# 检查节点状态
+function check_node_status() {
+    if command -v pm2 &> /dev/null; then
+        pm2 status layeredge
+        read -n 1 -s -r -p "按任意键返回主菜单..."
     else
-        echo "节点未运行，无法查看日志"
+        echo "未安装 PM2，请先部署节点"
         sleep 2
     fi
 }
@@ -90,13 +89,10 @@ function view_node_logs() {
 # 重启节点
 function restart_node() {
     if pm2 list | grep -q "layeredge"; then
-        echo "正在重启节点..."
-        cd ~/LayerEdge && pm2 restart layeredge
-        echo "节点已重启成功！"
+        pm2 restart layeredge
+        echo "节点已重启"
     else
-        echo "节点未运行，正在重新启动..."
-        cd ~/LayerEdge && pm2 start npm --name "layeredge" -- start
-        echo "节点已启动成功！"
+        echo "节点未运行，无需重启"
     fi
     sleep 2
 }
@@ -104,9 +100,8 @@ function restart_node() {
 # 停止节点
 function stop_node() {
     if pm2 list | grep -q "layeredge"; then
-        echo "正在停止节点..."
-        pm2 delete layeredge
-        echo "节点已停止并删除成功！"
+        pm2 stop layeredge
+        echo "节点已停止"
     else
         echo "节点未运行"
     fi
@@ -130,8 +125,13 @@ function deploy_layeredge_node() {
             rm -rf LayerEdge
             echo "旧目录已删除。"
         else
-            echo "跳过拉取仓库，使用现有目录。"
-            read -n 1 -s -r -p "按任意键继续..."
+            echo "使用现有目录继续运行..."
+            cd LayerEdge
+            pm2 delete layeredge 2>/dev/null
+            npm install
+            pm2 start npm --name "layeredge" -- start
+            echo "节点已重新启动！"
+            read -n 1 -s -r -p "按任意键返回主菜单..."
             return
         fi
     fi
@@ -142,7 +142,6 @@ function deploy_layeredge_node() {
     else
         echo "仓库拉取失败，请检查网络连接或仓库地址。"
         read -n 1 -s -r -p "按任意键返回主菜单..."
-        main_menu
         return
     fi
 
@@ -150,24 +149,8 @@ function deploy_layeredge_node() {
     cd LayerEdge || {
         echo "进入目录失败，请检查是否成功拉取仓库。"
         read -n 1 -s -r -p "按任意键返回主菜单..."
-        main_menu
         return
     }
-
-    # 输入钱包信息并保存到正确位置
-    read -p "请输入钱包地址: " wallet_address
-    read -p "请输入私钥: " private_key
-
-    # 确保在 LayerEdge 目录下保存 wallets.txt
-    echo "$wallet_address,$private_key" > ./wallets.txt
-    
-    # 验证文件是否创建成功
-    if [ ! -f "./wallets.txt" ]; then
-        echo "钱包配置文件创建失败！"
-        read -n 1 -s -r -p "按任意键返回主菜单..."
-        main_menu
-        return
-    fi
 
     # 安装依赖
     echo "正在使用 npm 安装依赖..."
@@ -176,9 +159,11 @@ function deploy_layeredge_node() {
     else
         echo "依赖安装失败，请检查网络连接或 npm 配置。"
         read -n 1 -s -r -p "按任意键返回主菜单..."
-        main_menu
         return
     fi
+
+    # 先确保没有同名的 PM2 进程
+    pm2 delete layeredge 2>/dev/null
 
     # 使用 PM2 启动项目
     echo "正在使用 PM2 启动项目..."
@@ -186,13 +171,11 @@ function deploy_layeredge_node() {
 
     echo "项目已成功启动！"
     echo "可以使用以下命令查看运行状态："
-    echo "pm2 logs layeredge - 查看日志"
-    echo "pm2 restart layeredge - 重启节点"
-    echo "pm2 delete layeredge - 停止节点"
+    echo "pm2 status"
+    echo "查看日志："
+    echo "pm2 logs layeredge"
 
-    # 提示用户按任意键返回主菜单
     read -n 1 -s -r -p "按任意键返回主菜单..."
-    main_menu
 }
 
 # 调用主菜单函数
